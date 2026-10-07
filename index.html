@@ -75,6 +75,13 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .act .key{position:absolute;bottom:3px;font-size:9px;color:var(--muted);z-index:1}
 .act .cd{position:absolute;inset:0;background:conic-gradient(rgba(5,9,7,.78) calc(var(--cd,0)*360deg),transparent 0);z-index:2;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:18px;color:#fff}
 .act.active{border-color:var(--gold)}
+.act{transition:transform .08s ease-out,filter .08s,box-shadow .15s}
+.act.pressed{transform:scale(.86);filter:brightness(1.35);box-shadow:0 0 0 4px rgba(242,193,78,.35),0 0 22px rgba(242,193,78,.55)}
+.touch #pad .act.pressed,.pc #pad .act.pressed{transform:scale(.86)}
+.act .rip{position:absolute;left:50%;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:rgba(255,236,170,.65);pointer-events:none;z-index:3;animation:rip .45s ease-out forwards}
+#atk .rip{background:rgba(255,160,80,.7)}
+@keyframes rip{from{transform:scale(1);opacity:.9}to{transform:scale(14);opacity:0}}
+#me.low #mhp{color:#ff4a3a;font-weight:700}
 #atk{right:0;bottom:0;width:94px;height:94px;background:radial-gradient(circle at 50% 40%,#3a2a1c,#1b140d);border-color:rgba(255,154,61,.55)}
 #atk .nm{font-family:var(--display);font-size:13px;color:var(--ember)}
 #s0{right:108px;bottom:2px;width:62px;height:62px}
@@ -2870,7 +2877,7 @@ function scr(x,h,y){V.set(x,h+hAt(x,y),y).project(camera);return{x:(V.x+1)/2*vw,
 const relCol=u=>u===S.player&&!S.attract?'#62cf86':(u.team===0?'#4aa8ff':'#ff5d5d');
 function hpBar2(x,y,w,h,u,col){
   octx.fillStyle='rgba(0,0,0,.65)';octx.fillRect(x-w/2-1,y-1,w+2,h+2);
-  const tot=Math.max(u.maxHp,u.maxHp+(u.shield||0)),fw=w*u.hp/tot;octx.fillStyle=col;octx.fillRect(x-w/2,y,fw,h);
+  const tot=Math.max(u.maxHp,u.maxHp+(u.shield||0)),fw=w*u.hp/tot;if(u.kind==='hero'&&u.hp<=Math.max(250,u.maxHp*0.15))col=(performance.now()%600<300)?'#ff3b2f':'#c81e16';octx.fillStyle=col;octx.fillRect(x-w/2,y,fw,h);
   if(u.shield>0){octx.fillStyle='#f4f4f4';octx.fillRect(x-w/2+fw,y,w*u.shield/tot,h)}
   if(u.kind==='hero'){octx.fillStyle='rgba(0,0,0,.5)';const seg=u.maxHp/250;for(let i=1;i<seg;i++)octx.fillRect(x-w/2+w*i/seg,y,1,h)}
 }
@@ -2934,7 +2941,7 @@ function hud(dt){
   $('gold').textContent=Math.floor(p.gold);
   $('mlv').textContent='Lv '+p.lvl;$('mkda').textContent=p.kills+'/'+p.deaths+'/'+p.assists;
   $('mxp').style.width=(p.lvl>=15?100:p.xp/needXP(p.lvl)*100)+'%';
-  $('mhp').textContent=Math.ceil(p.hp)+' / '+Math.round(p.maxHp);$('mmp').textContent=Math.floor(p.mana)+' / '+Math.round(p.maxMana);$('mmana').style.width=(p.mana/p.maxMana*100)+'%';$('mhero').textContent=p.def.name;
+  $('mhp').textContent=Math.ceil(p.hp)+' / '+Math.round(p.maxHp);$('me').classList.toggle('low',!p.dead&&p.hp<=Math.max(250,p.maxHp*0.15));$('mmp').textContent=Math.floor(p.mana)+' / '+Math.round(p.maxMana);$('mmana').style.width=(p.mana/p.maxMana*100)+'%';$('mhero').textContent=p.def.name;
   skBtns.forEach((b,i)=>{const s=p.def.skills[i],cdEl=b.querySelector('.cd'),mc=manaCost(p,i);b.classList.toggle('nomana',p.mana<mc);let me=b.querySelector('.mc');if(!me){me=document.createElement('span');me.className='mc';b.append(me)}if(me.textContent!==String(mc))me.textContent=mc;
     if(s.ult&&p.lvl<4){cdEl.style.setProperty('--cd',1);cdEl.textContent='Lv4'}
     else if(p.cds[i]>0){cdEl.style.setProperty('--cd',p.cds[i]/(s.cd*(1-p.cdr)));cdEl.textContent=Math.ceil(p.cds[i])}
@@ -3090,6 +3097,11 @@ $('joyzone').addEventListener('pointermove',e=>{if(e.pointerType==='mouse'){panM
   knob.style.transform='translate('+dx+'px,'+dy+'px)';input.mx=dx/m;input.my=dy/m});
 const joyEnd=e=>{if(e.pointerType==='mouse'){panEnd(e);return}if(e.pointerId!==joyId)return;joyId=null;input.mx=0;input.my=0;joyHome()};
 $('joyzone').addEventListener('pointerup',joyEnd);$('joyzone').addEventListener('pointercancel',joyEnd);
+// pressed motion + ripple on every action button
+{const press=b=>{b.classList.add('pressed');const r=document.createElement('i');r.className='rip';b.append(r);setTimeout(()=>r.remove(),460);b._pt=performance.now()};
+ const release=b=>{const wait=Math.max(0,110-(performance.now()-(b._pt||0)));setTimeout(()=>b.classList.remove('pressed'),wait)};
+ for(const b of document.querySelectorAll('#pad .act')){b.addEventListener('pointerdown',()=>press(b));for(const ev of['pointerup','pointercancel','pointerleave'])b.addEventListener(ev,()=>release(b))}
+ window.addEventListener('keydown',e=>{const m={q:'s0',e:'s1',r:'s2',b:'rc',' ':'atk'}[e.key.toLowerCase()];if(m&&!e.repeat&&S&&!S.attract){const b=$(m);press(b);release(b)}})}
 const atk=$('atk');
 atk.addEventListener('pointerdown',e=>{input.attack=true;atk.classList.add('active');atk.setPointerCapture(e.pointerId);e.preventDefault()});
 const atkEnd=()=>{input.attack=false;atk.classList.remove('active')};
