@@ -3345,7 +3345,7 @@ setInterval(()=>{if(!NET.host||!NET.public||NET.started)return;const n=NET.playe
 
 // ======================= ACCOUNTS (Firebase Auth: Google or email + password with email verification) =======================
 // Paste the Firebase web config here to switch accounts on (Firebase console > Project settings > Your apps > Web app).
-const FIREBASE_CONFIG=null;
+const FIREBASE_CONFIG={apiKey:"AIzaSyASsACBzArAQ82gCTkHqXbn1TaO5NTkmjY",authDomain:"alamat-arena.firebaseapp.com",projectId:"alamat-arena",storageBucket:"alamat-arena.firebasestorage.app",messagingSenderId:"673140115372",appId:"1:673140115372:web:82405c7213043d76f25c09"};
 const ACCT={ready:false,user:null,fb:null};
 function acctName(){const u=ACCT.user;if(u)return(u.displayName||(u.email||'Player').split('@')[0]).slice(0,16);try{return localStorage.getItem('aa_guest')||'Guest'}catch(_){return'Guest'}}
 function acctOk(){return!FIREBASE_CONFIG||(ACCT.user&&(ACCT.user.emailVerified||ACCT.user.providerData.some(p=>p.providerId==='google.com')))}
@@ -3367,8 +3367,8 @@ function acctOpen(){$('acct').hidden=false;acctMsg('');if(!FIREBASE_CONFIG){$('a
     try{$('acctguest').value=localStorage.getItem('aa_guest')||''}catch(_){}return}$('acctoff').hidden=true;acctInit();acctRender()}
 const gProvider=()=>new firebase.auth.GoogleAuthProvider();
 const useRedirect=()=>document.documentElement.classList.contains('touch')||matchMedia('(display-mode: standalone),(display-mode: fullscreen)').matches;
-async function acctGoogle(){try{acctMsg('Opening Google sign-in...');if(useRedirect())await ACCT.fb.signInWithRedirect(gProvider());else await ACCT.fb.signInWithPopup(gProvider());acctMsg('Signed in with Google!')}catch(e){acctMsg(acctErr(e),true)}}
-async function acctLinkGoogle(){try{if(useRedirect())await ACCT.user.linkWithRedirect(gProvider());else await ACCT.user.linkWithPopup(gProvider());await ACCT.user.reload();ACCT.user=ACCT.fb.currentUser;acctRender();acctMsg('Google account linked!')}catch(e){acctMsg(acctErr(e),true)}}
+async function acctGoogle(){acctMsg('Opening Google sign-in...');try{await ACCT.fb.signInWithPopup(gProvider());acctMsg('Signed in with Google!')}catch(e){if(/popup-blocked|operation-not-supported|web-storage/.test(e.code||'')){try{await ACCT.fb.signInWithRedirect(gProvider())}catch(e2){acctMsg(acctErr(e2),true)}}else acctMsg(acctErr(e),true)}}
+async function acctLinkGoogle(){try{try{await ACCT.user.linkWithPopup(gProvider())}catch(e){if(/popup-blocked|operation-not-supported/.test(e.code||''))await ACCT.user.linkWithRedirect(gProvider());else throw e}await ACCT.user.reload();ACCT.user=ACCT.fb.currentUser;acctRender();acctMsg('Google account linked!')}catch(e){acctMsg(acctErr(e),true)}}
 async function acctCreate(){const em=$('acctemail').value.trim(),pw=$('acctpass').value,nm=$('acctname').value.trim();if(!nm){acctMsg('Choose a player name.',true);return}
   try{acctMsg('Creating account...');const c=await ACCT.fb.createUserWithEmailAndPassword(em,pw);await c.user.updateProfile({displayName:nm.slice(0,16)});await c.user.sendEmailVerification();ACCT.user=ACCT.fb.currentUser;acctRender();
     acctMsg('Account created! We sent a verification link to '+em+'. Open it in your Gmail, then press "I verified".')}catch(e){acctMsg(acctErr(e),true)}}
