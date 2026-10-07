@@ -2173,40 +2173,63 @@ function animEnt(rg,u,T,now){
   const blink=(now+u.id*0.37)%4<0.12;rg.face.scale.y=blink?0.3:1;
   rg.crystal.rotation.y=now*1.5;rg.crystal.position.y=52+Math.sin(now*2)*3;
 }
+function barkTex(){if(matC.barkT)return matC.barkT;const c=document.createElement('canvas');c.width=128;c.height=256;const g=c.getContext('2d');g.fillStyle='#5a4030';g.fillRect(0,0,128,256);
+  const R=rng(5);for(let i=0;i<260;i++){const x=R()*128,w=1+R()*3,l=20+R()*90,y=R()*256;g.fillStyle=R()<0.5?'rgba(30,20,12,.55)':'rgba(140,110,80,.35)';g.fillRect(x,y,w,l)}
+  for(let i=0;i<40;i++){g.fillStyle='rgba(80,110,50,.35)';g.beginPath();g.arc(R()*128,180+R()*76,3+R()*8,0,6.3);g.fill()}
+  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(3,2);return matC.barkT=t}
+function lumpGeo(seed,det){const g=new THREE.SphereGeometry(1,18,13),p=g.attributes.position,R=rng(seed),v=new THREE.Vector3();
+  for(let i=0;i<p.count;i++){v.fromBufferAttribute(p,i);const n=1+0.22*Math.sin(v.x*5.1+seed)*Math.cos(v.y*4.3)+0.12*Math.sin(v.z*7.7+v.y*3)+(R()-.5)*0.08;v.multiplyScalar(n);v.y*=0.82;p.setXYZ(i,v.x,v.y,v.z)}
+  g.computeVertexNormals();return g}
+function tubeBranch(pts,r0,r1,seg){const curve=new THREE.CatmullRomCurve3(pts.map(p=>new THREE.Vector3(p[0],p[1],p[2])));const g=new THREE.TubeGeometry(curve,seg||14,1,8,false);
+  const p=g.attributes.position,n=g.attributes.normal,rs=8+1,segs=(seg||14)+1;const P=new THREE.Vector3();
+  for(let i=0;i<segs;i++){const t=i/(segs-1),c=curve.getPointAt(t),rad=r0+(r1-r0)*t;for(let j=0;j<rs;j++){const k=i*rs+j;P.set(n.getX(k),n.getY(k),n.getZ(k)).multiplyScalar(rad).add(c);p.setXYZ(k,P.x,P.y,P.z)}}
+  g.computeVertexNormals();return g}
 function buildAncientTree(){
-  const M=entMats(),root=new THREE.Group(),upper=joint(root,0,0,0),r={root,upper,core:true,ancient:true};
-  mesh(G('anBase',()=>new THREE.CylinderGeometry(80,96,10,14)),M.moss,root,0,4,0);
-  for(let i=0;i<9;i++){const a=i*TAU/9+0.2,rt=mesh(G('anRoot',()=>{const g=new THREE.ConeGeometry(13,95,7);g.translate(0,47,0);return g}),i%2?M.bark:M.bark2,upper,Math.cos(a)*28,0,Math.sin(a)*28);rt.rotation.z=-Math.cos(a)*1.42;rt.rotation.x=Math.sin(a)*1.42}
+  const root=new THREE.Group(),upper=joint(root,0,0,0),r={root,upper,core:true,ancient:true};
+  const bt=barkTex(),bark=rimify(new THREE.MeshPhongMaterial({color:0xb09078,map:bt,bumpMap:bt,bumpScale:2.2,shininess:6,specular:0x111111}));
+  const moss=new THREE.MeshLambertMaterial({color:0x5f7f34});
+  mesh(G('anBase2',()=>new THREE.CylinderGeometry(92,110,6,20)),moss,root,0,2,0);
   r.body=joint(upper,0,0,0);
-  mesh(G('anTrunk',()=>twistTrunk(46,28,150,12,1.8)),M.bark,r.body,0,6,0);
-  mesh(G('anTrunk2',()=>twistTrunk(30,20,120,10,-1.2)),M.bark2,r.body,8,6,6).rotation.z=0.12;
-  // ent face on the ancient
-  r.face=joint(r.body,40,96,0);
-  [-1,1].forEach(s=>{mesh(G('anBrow',()=>new THREE.BoxGeometry(8,5,16)),M.dark,r.face,0,10,s*10).rotation.x=s*0.4;mesh(sph(4.4,10,8),M.eye,r.face,2,3,s*10)});
-  r.eyeGlow=glowSprite(0xd8ff7a,50,r.face);r.eyeGlow.position.set(6,3,0);
-  mesh(G('anMouth',()=>new THREE.BoxGeometry(5,6,22)),M.dark,r.face,0,-14,0);
-  // big branches
-  const R=rng(11);r.leaves=[];
-  for(let i=0;i<6;i++){const a=i/6*TAU+0.3,b=joint(r.body,0,140,0);b.rotation.y=-a;const br=joint(b,0,0,0);br.rotation.z=-1.0-R()*0.25;
-    mesh(limbGeo(12,6,90),i%2?M.bark:M.bark2,br);
-    for(let k=0;k<3;k++){const c=mesh(G('anLeaf'+k,()=>new THREE.IcosahedronGeometry(1,1)),[M.leaf,M.leaf2,M.leaf3][(i+k)%3],root,0,0,0);
-      const rr=90+k*25+R()*20;c.position.set(Math.cos(a+k*0.3)*rr,230+R()*50-k*10,Math.sin(a+k*0.3)*rr);c.scale.setScalar(42+R()*20);r.leaves.push(c)}}
-  for(let i=0;i<4;i++){const c=mesh(G('anLeafTop',()=>new THREE.IcosahedronGeometry(1,1)),i%2?M.leaf2:M.leaf,root,(R()-.5)*80,300+R()*40,(R()-.5)*80);c.scale.setScalar(60+R()*20);r.leaves.push(c)}
-  r.crystal=mesh(G('cOrb',()=>new THREE.IcosahedronGeometry(16,1)),basic(0xd8ffe0),upper,0,200,0);r.glow=glowSprite(0x9fffb8,170,r.crystal);
-  // light shafts
-  const sg=new THREE.CylinderGeometry(30,120,320,16,1,true);sg.translate(0,160,0);
-  r.shafts=[];for(let i=0;i<3;i++){const m=new THREE.Mesh(sg,add(0xfff6b0,0.06));m.position.set((i-1)*50,0,(i%2)*40-20);m.rotation.z=(i-1)*0.15;root.add(m);r.shafts.push(m)}
-  // fireflies
-  r.flies=[];for(let i=0;i<(LOW?8:16);i++){const f=glowSprite(0xe6ff8a,10+R()*8,root);f.userData={a:R()*TAU,r:60+R()*120,h:40+R()*200,s:0.3+R()*0.6};r.flies.push(f)}
-  r.rubble=joint(root,0,0,0);r.rubble.visible=false;mesh(G('anStump',()=>new THREE.CylinderGeometry(40,55,30,10)),M.bark,r.rubble,0,15,0);
-  r.dome=mesh(sph(200,18,12),add(0x4aa8ff,0.07),root,0,90,0);root.scale.setScalar(0.66);
+  const R=rng(31);
+  // gnarled trunk: several twisted strands fused together
+  for(let k=0;k<5;k++){const a=k/5*TAU,ox=Math.cos(a)*14,oz=Math.sin(a)*14;
+    mesh(tubeBranch([[ox*1.9,0,oz*1.9],[ox*1.1,40,oz*1.1],[ox*0.6+Math.sin(a*3)*6,90,oz*0.6],[ox*0.9,140,oz*0.9],[ox*1.6,175,oz*1.6]],24,15,18),bark,r.body)}
+  mesh(tubeBranch([[0,0,0],[0,80,0],[0,170,0]],34,24,10),bark,r.body);
+  // flowing roots that sink into the ground
+  for(let k=0;k<9;k++){const a=k/9*TAU+R()*0.3,l=80+R()*50,c=Math.cos(a),s=Math.sin(a);
+    mesh(tubeBranch([[c*20,26,s*20],[c*45,12,s*45],[c*l*0.75,4,s*l*0.75],[c*l,-6,s*l]],13,3,12),bark,r.body)}
+  // big limbs reaching out to the canopy
+  const tips=[];
+  for(let k=0;k<7;k++){const a=k/7*TAU+R()*0.4,c=Math.cos(a),s=Math.sin(a),reach=70+R()*40,h=230+R()*40;
+    mesh(tubeBranch([[c*14,150,s*14],[c*45,190,s*45],[c*reach*0.75,h-10,s*reach*0.75],[c*reach,h+12,s*reach]],15,4,14),bark,r.body);tips.push([c*reach,h+14,s*reach])}
+  // leafy canopy: many lumpy clusters (instanced, one draw call) in a broad dome
+  const pos=[];tips.forEach(t=>{for(let i=0;i<5;i++)pos.push([t[0]+(R()-.5)*50,t[1]+R()*40,t[2]+(R()-.5)*50,24+R()*14])});
+  for(let i=0;i<26;i++){const a=R()*TAU,d=Math.sqrt(R())*115;pos.push([Math.cos(a)*d,270+R()*50-d*0.25,Math.sin(a)*d,30+R()*18])}
+  for(let i=0;i<10;i++){const a=R()*TAU,d=R()*70;pos.push([Math.cos(a)*d,320+R()*30,Math.sin(a)*d,28+R()*12])}
+  const lg=lumpGeo(3,2),lm=new THREE.MeshLambertMaterial({color:0xffffff,transparent:true,opacity:1});
+  const im=new THREE.InstancedMesh(lg,lm,pos.length),M=new THREE.Matrix4(),Q=new THREE.Quaternion(),E=new THREE.Euler(),C=new THREE.Color();
+  pos.forEach((p,i)=>{E.set(R()*3,R()*3,R()*3);Q.setFromEuler(E);M.compose(new THREE.Vector3(p[0],p[1],p[2]),Q,new THREE.Vector3(p[3],p[3]*0.85,p[3]));im.setMatrixAt(i,M);
+    const top=(p[1]-230)/120;C.setHSL(0.24+R()*0.06,0.45+R()*0.15,0.2+top*0.14+R()*0.06);im.setColorAt(i,C)});
+  im.instanceMatrix.needsUpdate=true;im.instanceColor.needsUpdate=true;root.add(im);r.canopy=im;
+  // hanging moss strands and falling leaves
+  const vine=new THREE.MeshLambertMaterial({color:0x6a8a3a});for(let i=0;i<14;i++){const p=pos[Math.floor(R()*pos.length)];const v=mesh(G('anVine',()=>{const q=new THREE.CylinderGeometry(0.8,0.3,40,4);q.translate(0,-20,0);return q}),vine,root,p[0],p[1]-p[3]*0.6,p[2]);v.scale.y=0.6+R()*0.8}
+  // subtle ent face in the bark
+  r.face=joint(r.body,30,110,0);[-1,1].forEach(s=>mesh(sph(3.4,10,8),basic(0xd8ff7a),r.face,2,3,s*9));r.eyeGlow=glowSprite(0xd8ff7a,36,r.face);r.eyeGlow.position.set(5,3,0);
+  r.crystal=mesh(G('cOrb',()=>new THREE.IcosahedronGeometry(16,1)),basic(0xd8ffe0),upper,0,200,0);r.glow=glowSprite(0x9fffb8,150,r.crystal);
+  const sg=new THREE.CylinderGeometry(25,110,340,16,1,true);sg.translate(0,170,0);
+  r.shafts=[];for(let i=0;i<4;i++){const m=new THREE.Mesh(sg,add(0xfff6b0,0.05));m.position.set((i-1.5)*45,0,(i%2)*40-20);m.rotation.z=(i-1.5)*0.12;root.add(m);r.shafts.push(m)}
+  r.flies=[];for(let i=0;i<(LOW?10:22);i++){const f=glowSprite(0xe6ff8a,8+R()*8,root);f.userData={a:R()*TAU,r:50+R()*140,h:30+R()*220,s:0.2+R()*0.5};r.flies.push(f)}
+  r.leaves=[];
+  r.rubble=joint(root,0,0,0);r.rubble.visible=false;mesh(G('anStump',()=>new THREE.CylinderGeometry(40,55,30,10)),bark,r.rubble,0,15,0);
+  r.dome=mesh(sph(130,18,12),add(0x4aa8ff,0.07),root,0,60,0);
   return r;
 }
 function animAncient(rg,u,now){
-  rg.leaves.forEach((c,i)=>{c.rotation.y=Math.sin(now*0.5+i)*0.08;c.rotation.z=Math.sin(now*0.7+i*1.3)*0.05});
-  rg.shafts.forEach((m,i)=>m.material.opacity=0.04+0.03*Math.sin(now*0.8+i*2));
+  {const P=S&&S.player,near=P&&!P.dead&&Math.hypot(P.x-u.x,P.y-u.y)<190,m=rg.canopy.material;m.opacity+=((near?0.4:1)-m.opacity)*0.1;m.depthWrite=m.opacity>0.95}
+  rg.canopy.rotation.y=Math.sin(now*0.35)*0.015;rg.canopy.position.x=Math.sin(now*0.6)*1.5;
+  rg.shafts.forEach((m,i)=>m.material.opacity=0.035+0.025*Math.sin(now*0.8+i*2));
   rg.flies.forEach(f=>{const d=f.userData,a=d.a+now*d.s;f.position.set(Math.cos(a)*d.r,d.h+Math.sin(now*2+d.a)*14,Math.sin(a*1.3)*d.r);f.material.opacity=0.5+0.5*Math.sin(now*4+d.a)});
-  const blink=(now%6)<0.15;rg.face.scale.y=blink?0.3:1;
+  rg.face.scale.y=(now%6)<0.15?0.3:1;
 }
 function buildTower(team){
   if(team===0)return buildEntTower();
