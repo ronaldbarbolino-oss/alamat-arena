@@ -1,0 +1,46 @@
+{
+  "id": "/",
+  "name": "Alamat Arena",
+  "short_name": "Alamat Arena",
+  "description": "3D na MOBA na may mga bayani mula sa alamat ng Pilipinas.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "fullscreen",
+  "display_override": [
+    "fullscreen",
+    "standalone"
+  ],
+  "orientation": "landscape",
+  "background_color": "#0d1510",
+  "theme_color": "#0d1510",
+  "lang": "fil",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

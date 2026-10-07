@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "app.netlify.alamat_arena.twa",
+        "sha256_cert_fingerprints": ["AE:DA:35:AB:D2:E1:D1:BB:79:76:74:DD:C2:7F:E5:FC:10:5C:81:DC:D6:85:CF:2D:41:0F:D5:BE:21:32:08:14"]
+      }
+    }]
