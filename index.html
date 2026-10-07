@@ -227,7 +227,14 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 #announce.fb b{font-size:clamp(28px,5.6vw,58px);background:linear-gradient(#ffe0e0,#e8202a 50%,#7a0008);-webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 3px 0 #2a0004) drop-shadow(0 0 24px rgba(255,40,40,.8))}
 #announce span{display:block;margin-top:6px;font-size:clamp(12px,2vw,16px);font-weight:600;color:#eef3e8;text-shadow:0 1px 3px #000}
 .touch #announce{top:30%}
-#mp{z-index:12}.mpcard{max-width:560px;background:var(--panel2);border:1px solid var(--line);border-radius:16px;padding:18px}
+#mp{z-index:12}#acct{z-index:13}
+.menutop{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+#acct input{font:inherit;font-size:15px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#0b130f;color:var(--ink);width:100%;box-sizing:border-box}
+#acctout,#acctin{display:flex;flex-direction:column;gap:10px}#acctout[hidden],#acctin[hidden],#acctoff[hidden],#acctverify[hidden],#acctlink[hidden]{display:none}
+.gbtn{background:#fff;color:#1f1f1f;box-shadow:0 4px 0 #9a9a9a;display:flex;align-items:center;justify-content:center;gap:10px}.gbtn .gl{font-weight:800;color:#4285f4;font-family:Arial,sans-serif}
+.acctor{text-align:center;font-size:12px;color:var(--muted)}.acctwho{display:flex;flex-direction:column;gap:2px}.acctwho b{font-family:var(--display);font-size:24px;font-weight:400}.acctwho span{color:var(--muted);font-size:13px}.acctwho em{font-style:normal;color:var(--ally);font-size:13px}
+.go small{display:block;font-family:var(--body);font-size:11px;opacity:.8;letter-spacing:0}
+@media (max-height:560px){#menu .menutop .logo br{display:none}#acct .mpcard{max-height:92vh;overflow:auto}}.mpcard{max-width:560px;background:var(--panel2);border:1px solid var(--line);border-radius:16px;padding:18px}
 .mpcard h3{display:flex;justify-content:space-between;align-items:center;margin:0;font-family:var(--display);font-weight:400;font-size:24px}
 .mpbtns{display:flex;flex-direction:column;gap:12px}.mpjoinrow{display:flex;gap:8px}
 #mpcodein{flex:1;min-width:0;font:inherit;font-size:20px;letter-spacing:.2em;text-transform:uppercase;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#0b130f;color:var(--ink)}
@@ -288,7 +295,7 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 
 <div class="ov" id="menu">
   <div class="card">
-    <h1 class="logo">ALAMAT<br><em>ARENA</em></h1>
+    <div class="menutop"><h1 class="logo">ALAMAT<br><em>ARENA</em></h1><button class="chip" id="acctbtn">Sign in</button></div>
     <p class="sub">Sentinel vs Scourge, 3 vs 3 across three lanes. Pick a hero, destroy the towers, and bring down the enemy Ancient before they destroy yours.</p>
     <div id="heroes"></div>
     <div class="rowc">
@@ -308,9 +315,31 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 <div class="ov" id="mp" hidden>
   <div class="card mpcard">
     <h3><span>Online Multiplayer</span><button class="x" id="mpx" aria-label="Close">×</button></h3>
-    <div id="mphome"><div class="mpbtns"><button class="go" id="mpcreate">CREATE ROOM</button><div class="mpjoinrow"><input id="mpcodein" maxlength="8" placeholder="ROOM CODE" autocomplete="off" autocapitalize="characters"><button class="go alt" id="mpjoin">JOIN</button></div></div></div>
+    <div id="mphome"><div class="mpbtns"><button class="go alt" id="mpquick">QUICK MATCH <small>(play with anyone online)</small></button><button class="go" id="mpcreate">CREATE ROOM <small>(with friends)</small></button><div class="mpjoinrow"><input id="mpcodein" maxlength="8" placeholder="ROOM CODE" autocomplete="off" autocapitalize="characters"><button class="go alt" id="mpjoin">JOIN</button></div></div></div>
     <div id="mplobby" hidden><div class="mpcodebox">Room code <b id="mpcode"></b> <button class="chip" id="mpcopy">Copy</button></div><div id="mplist"></div><button class="go" id="mpstart" hidden>START</button></div>
     <p id="mpstatus" class="sub"></p>
+  </div>
+</div>
+<div class="ov" id="acct" hidden>
+  <div class="card mpcard">
+    <h3><span>Your Account</span><button class="x" id="acctx" aria-label="Close">×</button></h3>
+    <div id="acctoff" hidden><p class="sub">Online accounts are being set up. For now you can play as a guest. Choose your player name:</p><div class="mpjoinrow"><input id="acctguest" maxlength="16" placeholder="Player name"><button class="go" id="acctguestsave">SAVE</button></div></div>
+    <div id="acctout" hidden>
+      <button class="go gbtn" id="acctg"><span class="gl">G</span> Continue with Google</button>
+      <div class="acctor">or use email and password</div>
+      <input id="acctname" maxlength="16" placeholder="Player name (for new accounts)" autocomplete="nickname">
+      <input id="acctemail" type="email" placeholder="Email (Gmail)" autocomplete="email">
+      <input id="acctpass" type="password" placeholder="Password (6+ characters)" autocomplete="current-password">
+      <div class="mpjoinrow"><button class="go" id="acctsignin">SIGN IN</button><button class="go alt" id="acctcreate">CREATE ACCOUNT</button></div>
+      <button class="chip" id="acctforgot">Forgot password?</button>
+    </div>
+    <div id="acctin" hidden>
+      <div class="acctwho"><b id="acctwho"></b><span id="acctmail"></span><em id="acctstate"></em></div>
+      <div id="acctverify" class="mpjoinrow"><button class="go" id="acctcheck">I VERIFIED</button><button class="chip" id="acctresend">Resend email</button></div>
+      <button class="go gbtn" id="acctlink"><span class="gl">G</span> Bind Google account</button>
+      <button class="chip" id="acctlogout">Sign out</button>
+    </div>
+    <p id="acctmsg" class="sub"></p>
   </div>
 </div>
 <div class="ov" id="end" hidden>
@@ -606,8 +635,8 @@ function recalc(h,full){
 }
 function manaCost(h,i){const s=h.def.skills[i],L=h.lvl-1;return Math.round(s.ult?110+L*8:(i?70:55)+L*4)}
 const TOWER_T={base:0.15,inner:0.27,outer:0.41};
-function mkTower(team,pt,lane,tier){const b=tier==='base';return mkUnit({kind:'tower',team,lane,tier,x:pt.x,y:pt.y,r:b?38:34,hp:b?3300:2600,maxHp:b?3300:2600,range:b?275:260,armor:b?0.2:0.15,dmgHero:b?210:175,dmgMinion:b?190:165,combo:0,force:null,forceT:0})}
-function mkCore(team){const b=BASE[team];return mkUnit({kind:'core',team,x:b.x,y:b.y,r:58,hp:4500,maxHp:4500,range:300,armor:0.15,dmgHero:230,dmgMinion:220,combo:0,force:null,forceT:0})}
+function mkTower(team,pt,lane,tier){const b=tier==='base';return mkUnit({kind:'tower',team,lane,tier,x:pt.x,y:pt.y,r:b?38:34,hp:b?3300:2600,maxHp:b?3300:2600,range:b?135:125,armor:b?0.2:0.15,dmgHero:b?210:175,dmgMinion:b?190:165,combo:0,force:null,forceT:0})}
+function mkCore(team){const b=BASE[team];return mkUnit({kind:'core',team,x:b.x,y:b.y,r:58,hp:4500,maxHp:4500,range:160,armor:0.15,dmgHero:230,dmgMinion:220,combo:0,force:null,forceT:0})}
 
 function newGame(heroId,diff,attract,roster){
   UID=0;
@@ -672,8 +701,9 @@ function nearestOpen(p){const i0=clamp(Math.floor(p.x/NC),0,NG-1),j0=clamp(Math.
 function moveTo(u,p,dt,stop=6){const dx=p.x-u.x,dy=p.y-u.y,L=Math.hypot(dx,dy);if(L>stop)moveDir(u,dx,dy,dt,L-stop+1)}
 function edge(a,b){return dist(a,b)-a.r-b.r}
 
+const atkRange=(u,t)=>isStruct(t)&&u.kind!=='tower'&&u.kind!=='core'?Math.min(u.range,Math.max(50,t.range-t.r)):u.range;
 function attackOrChase(u,t,dt){
-  if(edge(u,t)<=u.range){
+  if(edge(u,t)<=atkRange(u,t)){
     u.face=Math.atan2(t.y-u.y,t.x-u.x);
     if(u.atkT<=0){const as=aspdOf(u);u.atkT=1/as;const dur=Math.min(0.34,0.9/as);
       u.atkDur=dur;u.atkAt=S.t;u.atkCount=(u.atkCount||0)+1;u.windT=dur*0.38;u.windTgt=t}
@@ -830,7 +860,7 @@ function tick(u,dt){
   if(u.hitFlash>0)u.hitFlash-=dt;
   if(u.dead){if(u.kind==='hero'){u.respawnT-=dt;if(u.respawnT<=0)respawn(u)}return}
   u.atkT-=dt;
-  if(u.windT>0){u.windT-=dt;if(u.windT<=0){const t=u.windTgt;u.windTgt=null;if(t&&canHit(u,t)&&edge(u,t)<=u.range+80)doAttack(u,t)}}
+  if(u.windT>0){u.windT-=dt;if(u.windT<=0){const t=u.windTgt;u.windTgt=null;if(t&&canHit(u,t)&&edge(u,t)<=atkRange(u,t)+80)doAttack(u,t)}}
   if(u.stunT>0)u.stunT-=dt;
   if(u.slowT>0){u.slowT-=dt;if(u.slowT<=0)u.slowAmt=0}
   if(u.shieldT>0){u.shieldT-=dt;if(u.shieldT<=0)u.shield=0}
@@ -3169,9 +3199,9 @@ function fakePeer(id){const bc=new BroadcastChannel('alamat-mp'),me=id||('p'+Mat
 function newPeer(id){if(location.hash.includes('mptest'))return Promise.resolve(fakePeer(id));return loadPeer().then(()=>new window.Peer(id,{debug:0}))}
 function roomCode(){const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<5;i++)s+=A[Math.floor(Math.random()*A.length)];return s}
 function mpStatus(t,bad){const el=$('mpstatus');el.textContent=t;el.style.color=bad?'var(--foe)':'var(--muted)'}
-function mpOpen(){$('mp').hidden=false;$('mpstart').hidden=true;$('mplobby').hidden=true;$('mphome').hidden=false;mpStatus('Play with friends online. Create a room and share the code, or join a friend\'s room.')}
+function mpOpen(){if(!acctOk()){acctOpen();acctMsg('Sign in to play online.',true);return}$('mp').hidden=false;$('mpstart').hidden=true;$('mplobby').hidden=true;$('mphome').hidden=false;mpStatus('Play with friends online. Create a room and share the code, or join a friend\'s room.')}
 function mpClose(){mpLeave();$('mp').hidden=true}
-function mpLeave(){try{NET.conns.forEach(c=>c.close());if(NET.conn)NET.conn.close();if(NET.peer)NET.peer.destroy()}catch(_){}
+function mpLeave(){NET.public=false;NET.pubT=null;try{NET.conns.forEach(c=>c.close());if(NET.conn)NET.conn.close();if(NET.peer)NET.peer.destroy()}catch(_){}
   Object.assign(NET,{host:false,client:false,peer:null,conns:new Map(),conn:null,code:'',players:[],myHero:null,started:false,evSent:0})}
 function heroOptions(sel){return Object.keys(HEROES).map(id=>'<option value="'+id+'"'+(id===sel?' selected':'')+'>'+HEROES[id].name+' ('+HEROES[id].role+')</option>').join('')}
 function renderLobby(){const L=$('mplist');L.textContent='';
@@ -3185,7 +3215,7 @@ function renderLobby(){const L=$('mplist');L.textContent='';
       col.append(row)}
     for(let i=ps.length;i<3;i++){const row=document.createElement('div');row.className='mprow ai';row.textContent='AI bot';col.append(row)}
     L.append(col)}
-  $('mpcode').textContent=NET.code;$('mpstart').hidden=!NET.host;$('mpstart').disabled=!NET.host;
+  $('mpcode').textContent=NET.code;$('mpstart').hidden=!NET.host;$('mpstart').textContent=NET.public?'START NOW':'START';$('mpstart').disabled=!NET.host;
   mpStatus(NET.host?'Share the code. Press START when everyone is in (max 6 players, AI fills empty slots).':'Waiting for the host to start the match...')}
 function mpSet(ch){if(NET.host){Object.assign(NET.players.find(p=>p.pid==='host'),ch);mpFixTeams();mpBroadcastLobby()}else if(NET.conn)NET.conn.send(Object.assign({t:'set'},ch))}
 function mpFixTeams(){for(const t of[0,1]){const ps=NET.players.filter(p=>p.team===t);while(ps.length>3){ps.pop().team=1-t}}}
@@ -3193,7 +3223,7 @@ function mpBroadcastLobby(){const m={t:'lobby',players:NET.players,code:NET.code
 async function mpCreate(){mpLeave();NET.code=roomCode();mpStatus('Creating room...');
   try{const peer=await newPeer(MP_PREFIX+NET.code);NET.peer=peer;NET.host=true;
     peer.on('error',e=>mpStatus('Online error: '+(e.type||e.message||e),true));
-    peer.on('open',()=>{NET.players=[{pid:'host',name:'Player 1',hero:pick,team:0}];$('mphome').hidden=true;$('mplobby').hidden=false;renderLobby()});
+    peer.on('open',()=>{NET.players=[{pid:'host',name:acctName(),hero:pick,team:0}];$('mphome').hidden=true;$('mplobby').hidden=false;renderLobby()});
     peer.on('connection',c=>{c.on('open',()=>{if(NET.players.length>=6||NET.started){c.send({t:'full'});setTimeout(()=>c.close(),300);return}NET.conns.set(c.peer,c)});
       c.on('data',m=>mpHostMsg(c,m));c.on('close',()=>mpDrop(c.peer))})}catch(e){mpStatus(e.message,true)}}
 async function mpJoin(){const code=($('mpcodein').value||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');if(code.length<4){mpStatus('Type the room code from your friend.',true);return}
@@ -3201,14 +3231,14 @@ async function mpJoin(){const code=($('mpcodein').value||'').trim().toUpperCase(
   try{const peer=await newPeer();NET.peer=peer;NET.client=true;NET.code=code;
     peer.on('error',e=>mpStatus((e.type==='peer-unavailable'?'Room '+code+' not found.':'Online error: '+(e.type||e.message||e)),true));
     peer.on('open',()=>{const c=peer.connect(MP_PREFIX+code,{reliable:true});NET.conn=c;
-      c.on('open',()=>{c.send({t:'hello',hero:pick});$('mphome').hidden=true;$('mplobby').hidden=false;mpStatus('Joined! Waiting for the host...')});
+      c.on('open',()=>{c.send({t:'hello',hero:pick,name:acctName()});$('mphome').hidden=true;$('mplobby').hidden=false;mpStatus('Joined! Waiting for the host...')});
       c.on('data',m=>mpClientMsg(m));c.on('error',e=>mpStatus('Could not join: '+(e.message||e),true));
       c.on('close',()=>{if(NET.client){const was=NET.started;mpLeave();if(was&&S&&S.remote){toMenu()}$('mp').hidden=false;$('mphome').hidden=false;$('mplobby').hidden=true;mpStatus('The host left the room.',true)}})})}catch(e){mpStatus(e.message,true)}}
 function mpDrop(pid){NET.conns.delete(pid);NET.players=NET.players.filter(p=>p.pid!==pid);
   if(NET.started&&S){const h=S.heroes.find(x=>x.net===pid);if(h){h.isPlayer=false;h.net=null;h.inp=null;S.events.push({txt:h.def.name+"'s player left, an AI took over",team:h.team})}}else mpBroadcastLobby()}
 function mpHostMsg(c,m){
   if(m.t==='hello'){if(NET.players.some(p=>p.pid===c.peer))return;const n0=NET.players.filter(p=>p.team===0).length,n1=NET.players.length-n0;
-    NET.players.push({pid:c.peer,name:'Player '+(NET.players.length+1),hero:HEROES[m.hero]?m.hero:'kidlat',team:n0<=n1?0:1});mpFixTeams();mpBroadcastLobby();return}
+    NET.players.push({pid:c.peer,name:(m.name||'Player '+(NET.players.length+1)).slice(0,16),hero:HEROES[m.hero]?m.hero:'kidlat',team:n0<=n1?0:1});mpFixTeams();mpBroadcastLobby();return}
   if(m.t==='set'){const p=NET.players.find(p=>p.pid===c.peer);if(p&&!NET.started){if(m.hero&&HEROES[m.hero])p.hero=m.hero;if(m.team===0||m.team===1)p.team=m.team;mpFixTeams();mpBroadcastLobby()}return}
   if(!S||!NET.started)return;const h=S.heroes.find(x=>x.net===c.peer);if(!h)return;
   if(m.t==='in'){h.inp.mx=+m.mx||0;h.inp.my=+m.my||0;h.inp.attack=!!m.a}
@@ -3245,6 +3275,7 @@ function netHostTick(dt){if(!NET.host||!NET.started||!S||S.attract)return;NET.sn
 function mpClientMsg(m){
   if(m.t==='lobby'){NET.players=m.players;NET.code=m.code;renderLobby();return}
   if(m.t==='full'){mpStatus('That room is full or already playing.',true);return}
+  if(m.t==='count'){mpStatus('Match starts in '+m.n+'s...');return}
   if(m.t==='start'){NET.started=true;NET.myHero=m.me;diff=m.diff||diff;
     S={t:0,units:[],heroes:[],proj:[],zones:[],fx:[],texts:[],vfx:[],kills:[0,0],over:false,winner:-1,diff,attract:false,player:null,paused:false,events:[],remote:true,byId:new Map(),camps:[]};
     clearEnts&&clearEnts();lastEv=0;$('feed').textContent='';$('shoplist').textContent='';goLandscape();$('mp').hidden=true;$('menu').hidden=true;$('end').hidden=true;$('paused').hidden=true;return}
@@ -3280,6 +3311,78 @@ function netClientStep(dt){if(!S||!S.remote)return;S.t+=dt;const k=Math.min(1,dt
 window.__net=()=>({NET,packSnap});
 function netSend(m){if(NET.client&&NET.conn){try{NET.conn.send(m)}catch(_){}return true}return false}
 
+// ---------- quick match: find strangers in public rooms (no server needed) ----------
+const PUB='alamat-arena-pub-',PUB_SLOTS=12;
+function hostSetup(peer,pub){NET.peer=peer;NET.host=true;NET.public=pub;
+  peer.on('connection',c=>{c.on('open',()=>{if(NET.players.length>=6||NET.started){c.send({t:'full'});setTimeout(()=>c.close(),300);return}NET.conns.set(c.peer,c)});
+    c.on('data',m=>mpHostMsg(c,m));c.on('close',()=>mpDrop(c.peer))});
+  NET.players=[{pid:'host',name:acctName(),hero:pick,team:0}];$('mphome').hidden=true;$('mplobby').hidden=false;renderLobby()}
+function joinSetup(peer,c,code){NET.peer=peer;NET.client=true;NET.conn=c;NET.code=code;
+  c.on('data',m=>mpClientMsg(m));
+  c.on('close',()=>{if(NET.client){const was=NET.started;mpLeave();if(was&&S&&S.remote)toMenu();$('mp').hidden=false;$('mphome').hidden=false;$('mplobby').hidden=true;mpStatus('The host left the room.',true)}});
+  c.send({t:'hello',hero:pick,name:acctName()});$('mphome').hidden=true;$('mplobby').hidden=false}
+async function quickMatch(){if(!acctOk()){acctOpen();acctMsg('Sign in (and verify your email) to play with other online players.',true);return}
+  mpLeave();mpStatus('Searching for online players...');
+  try{const peer=await newPeer();await new Promise((res,rej)=>{peer.on('open',res);peer.on('error',rej)});
+    const found=await new Promise(res=>{let done=false,left=PUB_SLOTS;const fin=v=>{if(!done){done=true;res(v)}};
+      peer.on('error',e=>{if(e.type==='peer-unavailable'&&--left<=0)fin(null)});
+      for(let i=0;i<PUB_SLOTS;i++){const c=peer.connect(PUB+i,{reliable:true});
+        c.on('open',()=>{let ok=true;const onFull=m=>{if(m&&m.t==='full'){ok=false;c.close();if(--left<=0)fin(null)}};c.on('data',onFull);setTimeout(()=>{if(ok&&!done){fin({c,i})}else if(done&&ok)c.close()},500)});
+        c.on('error',()=>{if(--left<=0)fin(null)})}
+      setTimeout(()=>fin(null),6000)});
+    if(found){NET.public=true;joinSetup(peer,found.c,'PUBLIC '+(found.i+1));mpStatus('Found a match! Waiting for more players...');return}
+    peer.destroy();mpStatus('No open match found. Opening a new public match...');
+    for(let i=0;i<PUB_SLOTS;i++){const p2=await newPeer(PUB+i);const ok=await new Promise(r=>{p2.on('open',()=>r(true));p2.on('error',e=>r(e.type==='unavailable-id'?false:e))});
+      if(ok===true){NET.code='PUBLIC '+(i+1);hostSetup(p2,true);NET.pubT=null;return}try{p2.destroy()}catch(_){}if(ok!==false)throw ok}
+    mpStatus('All public matches are busy. Try again in a moment.',true)}catch(e){mpStatus('Online error: '+(e.type||e.message||e),true)}}
+// public host: start automatically once players have joined
+setInterval(()=>{if(!NET.host||!NET.public||NET.started)return;const n=NET.players.length;
+  if(n<2){NET.pubT=null;mpStatus('Public match open. Waiting for other players to join...');return}
+  if(NET.pubT==null)NET.pubT=n>=6?3:25;else NET.pubT--;if(n>=6&&NET.pubT>3)NET.pubT=3;
+  mpStatus(n+' players in. Match starts in '+NET.pubT+'s (AI fills empty slots)...');
+  NET.conns.forEach(c=>{try{c.send({t:'count',n:NET.pubT})}catch(_){}});
+  if(NET.pubT<=0)mpStartMatch()},1000);
+
+// ======================= ACCOUNTS (Firebase Auth: Google or email + password with email verification) =======================
+// Paste the Firebase web config here to switch accounts on (Firebase console > Project settings > Your apps > Web app).
+const FIREBASE_CONFIG=null;
+const ACCT={ready:false,user:null,fb:null};
+function acctName(){const u=ACCT.user;if(u)return(u.displayName||(u.email||'Player').split('@')[0]).slice(0,16);try{return localStorage.getItem('aa_guest')||'Guest'}catch(_){return'Guest'}}
+function acctOk(){return!FIREBASE_CONFIG||(ACCT.user&&(ACCT.user.emailVerified||ACCT.user.providerData.some(p=>p.providerId==='google.com')))}
+function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>rej(new Error('Could not load '+src));document.head.append(s)})}
+async function acctInit(){if(!FIREBASE_CONFIG||ACCT.fb)return;try{
+  await loadScript('https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-app-compat.js');await loadScript('https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-auth-compat.js');
+  firebase.initializeApp(FIREBASE_CONFIG);ACCT.fb=firebase.auth();ACCT.fb.useDeviceLanguage();
+  ACCT.fb.getRedirectResult().catch(e=>acctMsg(acctErr(e),true));
+  ACCT.fb.onAuthStateChanged(u=>{ACCT.user=u;ACCT.ready=true;acctRender()})}catch(e){acctMsg(e.message,true)}}
+function acctErr(e){const c=(e&&e.code)||'';return({'auth/email-already-in-use':'That email already has an account. Sign in instead.','auth/invalid-email':'That email address is not valid.','auth/weak-password':'Use a password with at least 6 characters.',
+  'auth/invalid-credential':'Wrong email or password.','auth/wrong-password':'Wrong email or password.','auth/user-not-found':'No account with that email.','auth/popup-closed-by-user':'Sign-in window was closed.',
+  'auth/credential-already-in-use':'That Google account is already linked to another player.','auth/unauthorized-domain':'This website is not yet allowed in Firebase (add it under Authentication > Settings > Authorized domains).'})[c]||(e&&e.message)||String(e)}
+function acctMsg(t,bad){const el=$('acctmsg');el.textContent=t||'';el.style.color=bad?'var(--foe)':'var(--muted)'}
+function acctRender(){const u=ACCT.user,b=$('acctbtn');b.textContent=u?('👤 '+acctName()+(acctOk()?'':' (verify)')):'Sign in';
+  $('acctout').hidden=!!u;$('acctin').hidden=!u;
+  if(u){$('acctwho').textContent=acctName();$('acctmail').textContent=u.email||'';const g=u.providerData.some(p=>p.providerId==='google.com'),pw=u.providerData.some(p=>p.providerId==='password');
+    $('acctverify').hidden=acctOk();$('acctlink').hidden=g;$('acctstate').textContent=(g?'Google account linked. ':'')+(pw?(u.emailVerified?'Email verified.':'Email not verified yet.'):'')}}
+function acctOpen(){$('acct').hidden=false;acctMsg('');if(!FIREBASE_CONFIG){$('acctout').hidden=true;$('acctin').hidden=true;$('acctoff').hidden=false;
+    try{$('acctguest').value=localStorage.getItem('aa_guest')||''}catch(_){}return}$('acctoff').hidden=true;acctInit();acctRender()}
+const gProvider=()=>new firebase.auth.GoogleAuthProvider();
+const useRedirect=()=>document.documentElement.classList.contains('touch')||matchMedia('(display-mode: standalone),(display-mode: fullscreen)').matches;
+async function acctGoogle(){try{acctMsg('Opening Google sign-in...');if(useRedirect())await ACCT.fb.signInWithRedirect(gProvider());else await ACCT.fb.signInWithPopup(gProvider());acctMsg('Signed in with Google!')}catch(e){acctMsg(acctErr(e),true)}}
+async function acctLinkGoogle(){try{if(useRedirect())await ACCT.user.linkWithRedirect(gProvider());else await ACCT.user.linkWithPopup(gProvider());await ACCT.user.reload();ACCT.user=ACCT.fb.currentUser;acctRender();acctMsg('Google account linked!')}catch(e){acctMsg(acctErr(e),true)}}
+async function acctCreate(){const em=$('acctemail').value.trim(),pw=$('acctpass').value,nm=$('acctname').value.trim();if(!nm){acctMsg('Choose a player name.',true);return}
+  try{acctMsg('Creating account...');const c=await ACCT.fb.createUserWithEmailAndPassword(em,pw);await c.user.updateProfile({displayName:nm.slice(0,16)});await c.user.sendEmailVerification();ACCT.user=ACCT.fb.currentUser;acctRender();
+    acctMsg('Account created! We sent a verification link to '+em+'. Open it in your Gmail, then press "I verified".')}catch(e){acctMsg(acctErr(e),true)}}
+async function acctSignIn(){try{acctMsg('Signing in...');await ACCT.fb.signInWithEmailAndPassword($('acctemail').value.trim(),$('acctpass').value);acctMsg(acctOk()?'Welcome back!':'Signed in. Please verify your email to play online.')}catch(e){acctMsg(acctErr(e),true)}}
+async function acctCheck(){try{await ACCT.user.reload();ACCT.user=ACCT.fb.currentUser;acctRender();acctMsg(acctOk()?'Email verified! You can now play online.':'Not verified yet. Open the link in your email first.',!acctOk())}catch(e){acctMsg(acctErr(e),true)}}
+async function acctResend(){try{await ACCT.user.sendEmailVerification();acctMsg('Verification email sent again.')}catch(e){acctMsg(acctErr(e),true)}}
+async function acctReset(){const em=$('acctemail').value.trim();if(!em){acctMsg('Type your email first.',true);return}try{await ACCT.fb.sendPasswordResetEmail(em);acctMsg('Password reset email sent.')}catch(e){acctMsg(acctErr(e),true)}}
+$('acctbtn').addEventListener('click',acctOpen);$('acctx').addEventListener('click',()=>$('acct').hidden=true);
+$('acctg').addEventListener('click',acctGoogle);$('acctcreate').addEventListener('click',acctCreate);$('acctsignin').addEventListener('click',acctSignIn);$('acctforgot').addEventListener('click',acctReset);
+$('acctcheck').addEventListener('click',acctCheck);$('acctresend').addEventListener('click',acctResend);$('acctlink').addEventListener('click',acctLinkGoogle);$('acctlogout').addEventListener('click',()=>ACCT.fb.signOut());
+$('acctguestsave').addEventListener('click',()=>{try{localStorage.setItem('aa_guest',$('acctguest').value.trim().slice(0,16))}catch(_){}$('acctbtn').textContent='👤 '+acctName();$('acct').hidden=true});
+if(FIREBASE_CONFIG)acctInit();else $('acctbtn').textContent=acctName()==='Guest'?'Sign in':'👤 '+acctName();
+
+$('mpquick').addEventListener('click',quickMatch);
 $('online').addEventListener('click',mpOpen);$('mpx').addEventListener('click',mpClose);$('mpcreate').addEventListener('click',mpCreate);$('mpjoin').addEventListener('click',mpJoin);
 $('mpstart').addEventListener('click',mpStartMatch);$('mpcodein').addEventListener('keydown',e=>{if(e.key==='Enter')mpJoin()});
 $('mpcopy').addEventListener('click',()=>{try{navigator.clipboard.writeText(NET.code);mpStatus('Code copied!')}catch(_){}});
