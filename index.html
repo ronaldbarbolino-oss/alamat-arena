@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="fil">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="theme-color" content="#0d1510">
-<meta name="description" content="Alamat Arena: 3D na MOBA sa browser na may mga bayani mula sa alamat ng Pilipinas.">
+<meta name="description" content="Alamat Arena: a 3D browser MOBA with heroes from Philippine legends and the streets.">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" type="image/png" href="/icons/icon-192.png">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
@@ -192,7 +192,7 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 </head><body>
 
 
-<div id="rotate"><div class="ph"></div><div style="font-size:20px">I-rotate ang phone pa-landscape</div><button id="rotbtn">Landscape na</button></div>
+<div id="rotate"><div class="ph"></div><div style="font-size:20px">Rotate your phone to landscape</div><button id="rotbtn">Go landscape</button></div>
 <canvas id="gl" tabindex="-1"></canvas>
 <canvas id="game"></canvas>
 <div id="joyzone"></div>
@@ -210,66 +210,66 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
   <div id="statp" hidden></div>
 </div>
 <div class="hud" id="tr">
-  <button class="chip" id="goldbtn" aria-label="Buksan ang tindahan"><span class="coin"></span><span id="gold">0</span></button>
+  <button class="chip" id="goldbtn" aria-label="Open shop"><span class="coin"></span><span id="gold">0</span></button>
   <button class="chip on" id="autobtn" aria-pressed="true" aria-label="Auto attack">AUTO</button>
-  <button class="chip" id="statbtn" aria-label="Ipakita ang stats">STATS</button>
-  <button class="chip" id="pausebtn" aria-label="I-pause">II</button>
+  <button class="chip" id="statbtn" aria-label="Show stats">STATS</button>
+  <button class="chip" id="pausebtn" aria-label="Pause">II</button>
 </div>
-<div class="hud" id="zoom"><button id="zin" aria-label="Zoom in">+</button><span id="zlv">100%</span><button id="zout" aria-label="Zoom out">&minus;</button><button id="zfocus" aria-label="Ibalik ang camera sa bayani">AKO</button><button id="zlock" aria-label="Palitan ang camera mode">LOCK</button></div>
+<div class="hud" id="zoom"><button id="zin" aria-label="Zoom in">+</button><span id="zlv">100%</span><button id="zout" aria-label="Zoom out">&minus;</button><button id="zfocus" aria-label="Center camera on hero">ME</button><button id="zlock" aria-label="Switch camera mode">LOCK</button></div>
 <div class="hud" id="pad">
-  <button class="act" id="rc"><span class="nm">Uwi</span><span class="key">B</span><div class="cd" id="rccd"></div></button>
+  <button class="act" id="rc"><span class="nm">Recall</span><span class="key">B</span><div class="cd" id="rccd"></div></button>
   <button class="act" id="s0"><span class="nm"></span><span class="key">Q</span><div class="cd"></div></button>
   <button class="act" id="s1"><span class="nm"></span><span class="key">E</span><div class="cd"></div></button>
   <button class="act" id="s2"><span class="nm"></span><span class="key">R</span><div class="cd"></div></button>
-  <button class="act" id="atk"><span class="nm">ATAKE</span><span class="key">Space</span></button>
+  <button class="act" id="atk"><span class="nm">ATTACK</span><span class="key">Space</span></button>
 </div>
-<div class="hud" id="qbuyw" hidden><button id="qbuy" aria-label="Bilhin ang susunod sa build"></button></div>
-<div class="hud" id="dead" hidden><span>Patay ka</span><b id="deadT">5</b><span>Babalik sa base</span></div>
+<div class="hud" id="qbuyw" hidden><button id="qbuy" aria-label="Buy next build item"></button></div>
+<div class="hud" id="dead" hidden><span>You died</span><b id="deadT">5</b><span>Respawning at base</span></div>
 <div class="hud" id="shop" hidden>
-  <h3><span>Tindahan</span><button class="x" id="shopx" aria-label="Isara">×</button></h3>
-  <div class="hint">Iyong gamit. Pindutin ang gamit para ibenta sa 60% ng presyo.</div>
+  <h3><span>Shop</span><button class="x" id="shopx" aria-label="Close">×</button></h3>
+  <div class="hint">Your items. Tap an item to sell it for 60% of its price.</div>
   <div id="owned"></div>
-  <div id="tabs"><button data-c="rec" class="on">Mungkahi</button><button data-c="atk">Atake</button><button data-c="mag">Mahika</button><button data-c="def">Depensa</button><button data-c="spd">Bilis</button></div>
+  <div id="tabs"><button data-c="rec" class="on">Recommended</button><button data-c="atk">Attack</button><button data-c="mag">Magic</button><button data-c="def">Defense</button><button data-c="spd">Speed</button></div>
   <div id="shoplist"></div>
 </div>
 
 <div class="ov" id="menu">
   <div class="card">
     <h1 class="logo">ALAMAT<br><em>ARENA</em></h1>
-    <p class="sub">3 laban sa 3 sa tatlong linya. Pumili ng bayani, sirain ang mga tore, at wasakin ang Puso ng kalaban bago nila wasakin ang sa inyo.</p>
+    <p class="sub">3 vs 3 across three lanes. Pick a hero, destroy the towers, and break the enemy Heart before they break yours.</p>
     <div id="heroes"></div>
     <div class="rowc">
       <div class="seg" id="diff">
-        <button data-d="madali">Madali</button><button data-d="normal" class="on">Katamtaman</button><button data-d="mahirap">Mahirap</button>
+        <button data-d="madali">Easy</button><button data-d="normal" class="on">Normal</button><button data-d="mahirap">Hard</button>
       </div>
-      <button class="go" id="start">LABAN!</button>
+      <button class="go" id="start">FIGHT!</button>
     </div>
     <div class="help">
-      <div class="h-touch"><b>Phone controls:</b> kaliwang daliri = joystick para gumalaw · kanang button = ATAKE (pindot-tagal) at mga skill · i-drag ang kanang bahagi ng screen para ilipat ang camera, dalawang daliri para mag-zoom · i-tap ang minimap para sumilip. Mas maganda kung naka-landscape.</div>
-      <div class="h-pc"><b>PC controls:</b> <b>right-click</b> o click sa lupa para lumakad, sa kalaban para umatake · i-drag ang mapa o itapat ang mouse sa gilid para ilipat ang camera · mouse wheel o <kbd>+</kbd>/<kbd>&minus;</kbd> zoom · <kbd>Q</kbd> <kbd>E</kbd> <kbd>R</kbd> skills · <kbd>B</kbd> uwi · <kbd>WASD</kbd> galaw · <kbd>Space</kbd> atake · <kbd>U</kbd> quick-buy · <kbd>P</kbd> tindahan · <kbd>I</kbd> stats · <kbd>T</kbd> auto attack · <kbd>F</kbd> camera sa bayani · <kbd>Esc</kbd> pause.</div>
-      Auto attack: kusang umaatake ang bayani mo sa kalabang malapit kapag nakatayo ka. Gubat: hindi madadaanan ang mga puno; talunin ang Baboy-ramo, Sigbin at Bakunawa para sa gold. Items: may mungkahing build ang bawat bayani, gamitin ang gintong quick-buy. Mabubuksan ang ultimate (R) sa Level 4. May 3 tore bawat lane: panlabas, gitna, at sa gate ng base, bago ang Puso.
+      <div class="h-touch"><b>Phone controls:</b> left thumb = joystick to move · right buttons = ATTACK (hold) and skills · pinch with two fingers to zoom. Play in landscape.</div>
+      <div class="h-pc"><b>PC controls:</b> <b>right-click</b> or click the ground to move, an enemy to attack · drag the map or push the mouse to the screen edge to move the camera · mouse wheel or <kbd>+</kbd>/<kbd>&minus;</kbd> zoom · <kbd>Q</kbd> <kbd>E</kbd> <kbd>R</kbd> skills · <kbd>B</kbd> recall · <kbd>WASD</kbd> move · <kbd>Space</kbd> attack · <kbd>U</kbd> quick-buy · <kbd>P</kbd> shop · <kbd>I</kbd> stats · <kbd>T</kbd> auto attack · <kbd>F</kbd> center camera · <kbd>Esc</kbd> pause.</div>
+      Auto attack: your hero automatically hits nearby enemies while standing still. Jungle: trees block movement; defeat the Wild Boar, Sigbin and Bakunawa for gold. Items: every hero has a recommended build, use the gold quick-buy button. The ultimate (R) unlocks at Level 4. Each lane has 3 towers: outer, inner and base gate, before the Heart.
     </div>
   </div>
 </div>
 
 <div class="ov" id="end" hidden>
   <div class="card">
-    <h2 id="endTitle">Tagumpay!</h2>
+    <h2 id="endTitle">Victory!</h2>
     <p class="sub" id="endSub"></p>
     <div class="stats">
-      <div><b id="eK">0</b><span>Patay</span></div>
-      <div><b id="eD">0</b><span>Namatay</span></div>
-      <div><b id="eA">0</b><span>Tulong</span></div>
+      <div><b id="eK">0</b><span>Kills</span></div>
+      <div><b id="eD">0</b><span>Deaths</span></div>
+      <div><b id="eA">0</b><span>Assists</span></div>
     </div>
-    <button class="go" id="again">MAGLARO ULIT</button>
+    <button class="go" id="again">PLAY AGAIN</button>
   </div>
 </div>
 
 <div class="ov" id="paused" hidden>
   <div class="card" style="max-width:340px;align-items:center;text-align:center">
     <h2 class="logo" style="font-size:40px">PAUSE</h2>
-    <button class="go" id="resume">TULOY</button>
-    <button class="chip" id="quit" style="justify-content:center">Bumalik sa menu</button>
+    <button class="go" id="resume">RESUME</button>
+    <button class="chip" id="quit" style="justify-content:center">Back to menu</button>
   </div>
 </div>
 
@@ -289,8 +289,8 @@ const LANES=[
   [[360,2840],[950,2800],[2760,2760],[2800,950],[2840,360]]
 ].map(p=>p.map(([x,y])=>({x,y})));
 const RIVER=[{x:100,y:100},{x:1000,y:1160},{x:1600,y:1600},{x:2200,y:2040},{x:3100,y:3100}];
-const LANE_NAMES=['Itaas','Gitna','Ibaba'];
-const TEAM_NAMES=['Asul','Pula'];
+const LANE_NAMES=['Top','Mid','Bot'];
+const TEAM_NAMES=['Blue','Red'];
 const lanePath=(l,t)=>t===0?LANES[l]:LANES[l].slice().reverse();
 function pathLen(p){let s=0;for(let i=1;i<p.length;i++)s+=dist(p[i-1],p[i]);return s}
 function pointAt(p,t){let L=pathLen(p)*t;for(let i=1;i<p.length;i++){const d=dist(p[i-1],p[i]);if(L<=d){const k=L/d;return{x:p[i-1].x+(p[i].x-p[i-1].x)*k,y:p[i-1].y+(p[i].y-p[i-1].y)*k}}L-=d}return{...p[p.length-1]}}
@@ -299,74 +299,106 @@ function polyDist(p,pts){let m=1e9;for(let i=1;i<pts.length;i++)m=Math.min(m,seg
 
 // ---------- content ----------
 const HEROES={
-  kidlat:{name:'Kidlat',role:'Mage',glyph:'K',color:'#8fb8ff',desc:'Malakas na kidlat mula malayo. Mahina ang katawan, malakas ang tama.',
+  kidlat:{name:'Kidlat',role:'Mage',glyph:'K',color:'#8fb8ff',desc:'Calls down lightning from afar. Fragile body, devastating hits.',
     hp:560,hpG:72,atk:44,atkG:4,range:340,aspd:0.85,speed:205,armor:0.05,melee:false,
     skills:[
-      {name:'Tama ng Kidlat',type:'proj',cd:5,range:640,speed:950,width:22,dmg:230,dmgG:22,effect:{slow:0.4,t:1.2}},
-      {name:'Kulog',type:'aoe',cd:9,range:540,radius:135,delay:0.6,dmg:250,dmgG:22,effect:{stun:0.9}},
-      {name:'Bagyo',type:'aoe',cd:40,range:580,radius:240,delay:0.9,dmg:540,dmgG:42,ult:true,effect:{slow:0.6,t:2}}]},
-  amihan:{name:'Amihan',role:'Marksman',glyph:'A',color:'#9ee6d8',desc:'Mamamana ng hangin. Mabilis tumira, mapanganib habang tumatagal ang laban.',
+      {name:'Lightning Strike',type:'proj',cd:5,range:640,speed:950,width:22,dmg:230,dmgG:22,effect:{slow:0.4,t:1.2}},
+      {name:'Thunderclap',type:'aoe',cd:9,range:540,radius:135,delay:0.6,dmg:250,dmgG:22,effect:{stun:0.9}},
+      {name:'Typhoon',type:'aoe',cd:40,range:580,radius:240,delay:0.9,dmg:540,dmgG:42,ult:true,effect:{slow:0.6,t:2}}]},
+  amihan:{name:'Amihan',role:'Marksman',glyph:'A',color:'#9ee6d8',desc:'Archer of the wind. Shoots fast and grows deadlier as the fight goes on.',
     hp:600,hpG:82,atk:58,atkG:6,range:400,aspd:1.1,speed:210,armor:0.05,melee:false,
     skills:[
-      {name:'Palasong Hangin',type:'proj',cd:6,range:720,speed:1150,width:20,dmg:200,dmgG:18,pierce:true,effect:{slow:0.35,t:1.5}},
-      {name:'Habagat',type:'buff',cd:12,dur:4,aspd:0.7,spd:0.3},
-      {name:'Unos',type:'proj',cd:38,range:1350,speed:1400,width:56,dmg:560,dmgG:45,pierce:true,ult:true,effect:{stun:0.7}}]},
-  bagwis:{name:'Bagwis',role:'Assassin',glyph:'B',color:'#e7a6ff',desc:'Mabilis na mandirigmang may pakpak. Lumulundag at umaatake sa mahina.',
+      {name:'Wind Arrow',type:'proj',cd:6,range:720,speed:1150,width:20,dmg:200,dmgG:18,pierce:true,effect:{slow:0.35,t:1.5}},
+      {name:'Monsoon Rush',type:'buff',cd:12,dur:4,aspd:0.7,spd:0.3},
+      {name:'Tempest',type:'proj',cd:38,range:1350,speed:1400,width:56,dmg:560,dmgG:45,pierce:true,ult:true,effect:{stun:0.7}}]},
+  bagwis:{name:'Bagwis',role:'Assassin',glyph:'B',color:'#e7a6ff',desc:'A swift winged warrior. Leaps in and strikes down weak targets.',
     hp:690,hpG:92,atk:70,atkG:7,range:70,aspd:1.0,speed:228,armor:0.1,melee:true,
     skills:[
-      {name:'Lundag',type:'dash',cd:6,range:300,radius:110,dmg:180,dmgG:18},
-      {name:'Talim',type:'nova',cd:8,radius:150,dmg:210,dmgG:20,effect:{slow:0.3,t:1}},
-      {name:'Dagit ng Agila',type:'leap',cd:32,range:540,radius:95,dmg:520,dmgG:45,ult:true}]},
-  tikbalang:{name:'Tikbalang',role:'Tank',glyph:'T',color:'#e9b377',desc:'Halimaw ng gubat. Matibay, sumisipa, at pinapahinto ang buong grupo ng kalaban.',
+      {name:'Pounce',type:'dash',cd:6,range:300,radius:110,dmg:180,dmgG:18},
+      {name:'Blade Spin',type:'nova',cd:8,radius:150,dmg:210,dmgG:20,effect:{slow:0.3,t:1}},
+      {name:'Eagle Dive',type:'leap',cd:32,range:540,radius:95,dmg:520,dmgG:45,ult:true}]},
+  tikbalang:{name:'Tikbalang',role:'Tank',glyph:'T',color:'#e9b377',desc:'Beast of the forest. Tough, kicks hard and stops the whole enemy team.',
     hp:1150,hpG:135,atk:50,atkG:4,range:75,aspd:0.85,speed:200,armor:0.25,melee:true,
     skills:[
-      {name:'Sipa',type:'dash',cd:8,range:260,radius:100,dmg:140,dmgG:12,effect:{stun:0.9}},
-      {name:'Batong Balat',type:'shield',cd:12,amt:320,amtG:32,dur:4,radius:170,effect:{slow:0.45,t:1.5}},
-      {name:'Yanig',type:'nova',cd:42,radius:260,dmg:300,dmgG:26,ult:true,effect:{stun:1.4}}]}
+      {name:'Kick',type:'dash',cd:8,range:260,radius:100,dmg:140,dmgG:12,effect:{stun:0.9}},
+      {name:'Stone Skin',type:'shield',cd:12,amt:320,amtG:32,dur:4,radius:170,effect:{slow:0.45,t:1.5}},
+      {name:'Earthquake',type:'nova',cd:42,radius:260,dmg:300,dmgG:26,ult:true,effect:{stun:1.4}}]}
 };
 Object.assign(HEROES,{
-  aswang:{name:'Aswang',role:'Fighter',glyph:'W',color:'#d0614e',desc:'Mukhang tao sa araw, halimaw sa gabi. Kumakalmot, nabubusog sa laban, at nag-aanyong halimaw.',
+  aswang:{name:'Aswang',role:'Fighter',glyph:'W',color:'#d0614e',desc:'Human by day, monster by night. Claws, feeds on battle and turns into a beast.',
     hp:820,hpG:105,atk:64,atkG:6,range:75,aspd:0.95,speed:215,armor:0.15,melee:true,
     skills:[
-      {name:'Kalmot',type:'dash',cd:7,range:240,radius:105,dmg:170,dmgG:16,effect:{slow:0.4,t:1.2}},
-      {name:'Gutom',type:'buff',cd:13,dur:4,aspd:0.5,spd:0.2,heal:0.15},
-      {name:'Anyong Halimaw',type:'transform',cd:45,dur:8,radius:190,dmg:360,dmgG:30,dmgUp:0.4,spd:0.3,ult:true,effect:{stun:1.0}}]},
-  manananggal:{name:'Manananggal',role:'Assassin',glyph:'M',color:'#c0558a',desc:'Humihiwalay ang katawan at lumilipad sa gabi. Kaya niyang lumipad sa ibabaw ng gubat para sumalakay.',
+      {name:'Claw',type:'dash',cd:7,range:240,radius:105,dmg:170,dmgG:16,effect:{slow:0.4,t:1.2}},
+      {name:'Hunger',type:'buff',cd:13,dur:4,aspd:0.5,spd:0.2,heal:0.15},
+      {name:'Beast Form',type:'transform',cd:45,dur:8,radius:190,dmg:360,dmgG:30,dmgUp:0.4,spd:0.3,ult:true,effect:{stun:1.0}}]},
+  manananggal:{name:'Manananggal',role:'Assassin',glyph:'M',color:'#c0558a',desc:'Splits her body and flies at night. Can soar over the forest to ambush.',
     hp:610,hpG:84,atk:60,atkG:6,range:260,aspd:1.0,speed:220,armor:0.06,melee:false,
     skills:[
-      {name:'Dila',type:'proj',cd:6,range:480,speed:1000,width:20,dmg:230,dmgG:20,effect:{slow:0.5,t:1.3}},
-      {name:'Lipad',type:'fly',cd:11,range:620,radius:110,dmg:140,dmgG:14},
-      {name:'Hiyaw ng Gabi',type:'nova',cd:38,radius:270,dmg:430,dmgG:36,ult:true,effect:{stun:1.0}}]},
-  whitelady:{name:'White Lady',role:'Mage',glyph:'L',color:'#dfe8f0',desc:'Multong naka-puting bestida sa daan tuwing hatinggabi. Naglalaho at umiiyak ng nakamamatay na panaghoy.',
+      {name:'Tongue Lash',type:'proj',cd:6,range:480,speed:1000,width:20,dmg:230,dmgG:20,effect:{slow:0.5,t:1.3}},
+      {name:'Night Flight',type:'fly',cd:11,range:620,radius:110,dmg:140,dmgG:14},
+      {name:'Night Shriek',type:'nova',cd:38,radius:270,dmg:430,dmgG:36,ult:true,effect:{stun:1.0}}]},
+  whitelady:{name:'White Lady',role:'Mage',glyph:'L',color:'#dfe8f0',desc:'A ghost in a white dress haunting midnight roads. Fades away and lets out a deadly wail.',
     hp:560,hpG:74,atk:46,atkG:4,range:350,aspd:0.85,speed:210,armor:0.05,melee:false,
     skills:[
-      {name:'Haplos ng Lamig',type:'proj',cd:5,range:620,speed:850,width:24,dmg:215,dmgG:20,effect:{slow:0.55,t:1.6}},
-      {name:'Paglaho',type:'phase',cd:12,dur:3,amt:260,amtG:26,spd:0.45},
-      {name:'Panaghoy',type:'aoe',cd:40,range:560,radius:250,delay:0.7,dmg:480,dmgG:40,ult:true,effect:{stun:1.2}}]}
+      {name:'Cold Touch',type:'proj',cd:5,range:620,speed:850,width:24,dmg:215,dmgG:20,effect:{slow:0.55,t:1.6}},
+      {name:'Fade',type:'phase',cd:12,dur:3,amt:260,amtG:26,spd:0.45},
+      {name:'Wail',type:'aoe',cd:40,range:560,radius:250,delay:0.7,dmg:480,dmgG:40,ult:true,effect:{stun:1.2}}]}
+});
+Object.assign(HEROES,{
+  ghosthunter:{name:'Spirit Hunter',role:'Mage',glyph:'S',color:'#ffe28a',desc:'A paranormal investigator with a holy flashlight. Burns spirits from range and traps enemies in salt circles.',
+    hp:580,hpG:76,atk:46,atkG:4,range:340,aspd:0.85,speed:208,armor:0.06,melee:false,
+    skills:[
+      {name:'Holy Beam',type:'proj',cd:5,range:660,speed:1100,width:26,dmg:215,dmgG:20,pierce:true,effect:{slow:0.3,t:1}},
+      {name:'Salt Circle',type:'aoe',cd:10,range:520,radius:140,delay:0.5,dmg:220,dmgG:20,effect:{stun:1.1}},
+      {name:'Exorcism',type:'nova',cd:40,radius:280,dmg:470,dmgG:40,ult:true,effect:{stun:1.2}}]},
+  kantoking:{name:'Kanto King',role:'Fighter',glyph:'N',color:'#ff8a3d',desc:'The toughest brawler on the street corner. Charges in with a haymaker and gets stronger the longer the fight goes.',
+    hp:860,hpG:108,atk:66,atkG:6,range:70,aspd:1.05,speed:218,armor:0.14,melee:true,
+    skills:[
+      {name:'Haymaker',type:'dash',cd:7,range:260,radius:100,dmg:180,dmgG:16,effect:{stun:0.8}},
+      {name:'Street Swagger',type:'buff',cd:13,dur:4,aspd:0.55,spd:0.25,heal:0.12},
+      {name:'Corner Brawl',type:'transform',cd:44,dur:8,radius:200,dmg:340,dmgG:30,dmgUp:0.45,spd:0.3,ult:true,effect:{stun:1.0}}]},
+  spiderknight:{name:'Spider Knight',role:'Assassin',glyph:'X',color:'#7dff9a',desc:'A masked hero with spider legs. Webs enemies from afar, crawls over the forest and pounces on the weak.',
+    hp:640,hpG:86,atk:66,atkG:7,range:80,aspd:1.05,speed:230,armor:0.08,melee:true,
+    skills:[
+      {name:'Web Shot',type:'proj',cd:6,range:520,speed:1050,width:24,dmg:190,dmgG:18,effect:{slow:0.6,t:1.6}},
+      {name:'Wall Crawl',type:'fly',cd:11,range:600,radius:110,dmg:150,dmgG:14},
+      {name:'Venom Pounce',type:'leap',cd:32,range:560,radius:100,dmg:540,dmgG:46,ult:true}]},
+  roachknight:{name:'Roach Knight',role:'Tank',glyph:'R',color:'#c98a4a',desc:'An armored cockroach warrior who refuses to die. Rams enemies, hardens his shell and calls a swarm.',
+    hp:1180,hpG:138,atk:48,atkG:4,range:75,aspd:0.85,speed:202,armor:0.26,melee:true,
+    skills:[
+      {name:'Shell Ram',type:'dash',cd:8,range:280,radius:105,dmg:150,dmgG:12,effect:{stun:1.0}},
+      {name:'Hard Shell',type:'shield',cd:12,amt:340,amtG:34,dur:4,radius:170,effect:{slow:0.4,t:1.5}},
+      {name:'Swarm',type:'nova',cd:42,radius:270,dmg:290,dmgG:26,ult:true,effect:{stun:1.5}}]},
+  cheflechon:{name:'Chef Lechon',role:'Marksman',glyph:'C',color:'#ffb347',desc:'A jolly grill master who throws sizzling skewers. Fast shots, hot sauce traps and a rolling roast finisher.',
+    hp:620,hpG:84,atk:57,atkG:6,range:390,aspd:1.08,speed:208,armor:0.06,melee:false,
+    skills:[
+      {name:'BBQ Skewer',type:'proj',cd:6,range:700,speed:1150,width:20,dmg:205,dmgG:18,pierce:true,effect:{slow:0.3,t:1.2}},
+      {name:'Hot Sauce',type:'aoe',cd:11,range:540,radius:150,delay:0.4,dmg:170,dmgG:16,effect:{slow:0.55,t:2}},
+      {name:'Rolling Roast',type:'proj',cd:38,range:1300,speed:1100,width:60,dmg:540,dmgG:44,pierce:true,ult:true,effect:{stun:0.8}}]}
 });
 // ---------- items: atake, mahika, depensa, bilis (one pair of footwear only) ----------
 const ITEMS={
-  bolo:{name:'Bolo ng Mandirigma',cat:'atk',cost:600,atk:30},
-  pana:{name:'Pana ng Habagat',cat:'atk',cost:700,aspd:0.35},
-  kampilan:{name:'Kampilan ng Datu',cat:'atk',cost:1500,atk:60,crit:0.12},
-  ngipin:{name:'Ngipin ng Buwaya',cat:'atk',cost:1550,atk:38,ls:0.15},
-  sibat:{name:'Sibat na Tumatagos',cat:'atk',cost:1700,atk:42,pen:22},
-  kris:{name:'Kris ng Lakan',cat:'atk',cost:2150,atk:45,crit:0.25,critDmg:0.3},
-  aklat:{name:'Aklat ng Babaylan',cat:'mag',cost:750,mp:45,cdr:0.1},
-  tungkod:{name:'Tungkod ng Diwata',cat:'mag',cost:1800,mp:85,hp:300},
-  buwan:{name:'Anting ng Buwan',cat:'mag',cost:1650,mp:70,sv:0.15},
-  mata:{name:'Mata ng Bathala',cat:'mag',cost:2200,mp:110,mpen:22},
-  hiyas:{name:'Hiyas ng Agos',cat:'mag',cost:1900,mp:60,cdr:0.2,hp:200},
-  anting:{name:'Anting-anting',cat:'def',cost:550,hp:400},
-  kalasag:{name:'Kalasag na Narra',cat:'def',cost:700,def:30},
-  balabal:{name:'Balabal ng Diwata',cat:'def',cost:900,mres:35,hp:300},
-  baluti:{name:'Baluti ng Kalabaw',cat:'def',cost:2000,hp:700,def:40,regen:6},
-  puso:{name:'Puso ng Balete',cat:'def',cost:2300,hp:1000,mres:25,regen:10},
-  tsinelas:{name:'Tsinelas ng Hangin',cat:'spd',cost:450,spd:40,boots:1},
-  bakya:{name:'Bakya ng Mandirigma',cat:'spd',cost:850,spd:40,def:20,boots:1},
-  sandalyas:{name:'Sandalyas ng Babaylan',cat:'spd',cost:850,spd:40,cdr:0.1,boots:1}
+  bolo:{name:"Warrior's Bolo",cat:'atk',cost:600,atk:30},
+  pana:{name:'Monsoon Bow',cat:'atk',cost:700,aspd:0.35},
+  kampilan:{name:"Datu's Kampilan",cat:'atk',cost:1500,atk:60,crit:0.12},
+  ngipin:{name:'Crocodile Fang',cat:'atk',cost:1550,atk:38,ls:0.15},
+  sibat:{name:'Piercing Spear',cat:'atk',cost:1700,atk:42,pen:22},
+  kris:{name:"Lakan's Kris",cat:'atk',cost:2150,atk:45,crit:0.25,critDmg:0.3},
+  aklat:{name:'Babaylan Tome',cat:'mag',cost:750,mp:45,cdr:0.1},
+  tungkod:{name:'Diwata Staff',cat:'mag',cost:1800,mp:85,hp:300},
+  buwan:{name:'Moon Charm',cat:'mag',cost:1650,mp:70,sv:0.15},
+  mata:{name:'Eye of Bathala',cat:'mag',cost:2200,mp:110,mpen:22},
+  hiyas:{name:'Tide Jewel',cat:'mag',cost:1900,mp:60,cdr:0.2,hp:200},
+  anting:{name:'Amulet',cat:'def',cost:550,hp:400},
+  kalasag:{name:'Narra Shield',cat:'def',cost:700,def:30},
+  balabal:{name:'Diwata Cloak',cat:'def',cost:900,mres:35,hp:300},
+  baluti:{name:'Carabao Armor',cat:'def',cost:2000,hp:700,def:40,regen:6},
+  puso:{name:'Heart of Balete',cat:'def',cost:2300,hp:1000,mres:25,regen:10},
+  tsinelas:{name:'Wind Slippers',cat:'spd',cost:450,spd:40,boots:1},
+  bakya:{name:"Warrior's Clogs",cat:'spd',cost:850,spd:40,def:20,boots:1},
+  sandalyas:{name:'Babaylan Sandals',cat:'spd',cost:850,spd:40,cdr:0.1,boots:1}
 };
-const STATLBL={atk:'Atake',mp:'Mahika',hp:'Buhay',def:'P.Depensa',mres:'M.Depensa',aspd:'Bilis ng atake',crit:'Crit',critDmg:'Crit damage',ls:'Lifesteal',sv:'Spell vamp',cdr:'Cooldown',spd:'Bilis',regen:'Regen/s',pen:'P.Penetration',mpen:'M.Penetration'};
+const STATLBL={atk:'Attack',mp:'Magic',hp:'HP',def:'P.Defense',mres:'M.Defense',aspd:'Attack speed',crit:'Crit',critDmg:'Crit damage',ls:'Lifesteal',sv:'Spell vamp',cdr:'Cooldown',spd:'Speed',regen:'Regen/s',pen:'P.Penetration',mpen:'M.Penetration'};
 const PCT={aspd:1,crit:1,critDmg:1,ls:1,sv:1,cdr:1};
 function itemText(it){return Object.keys(STATLBL).filter(k=>it[k]).map(k=>'+'+(PCT[k]?Math.round(it[k]*100)+'%':it[k])+' '+STATLBL[k]).join(', ')}
 const HERO_EXTRA={
@@ -376,9 +408,14 @@ const HERO_EXTRA={
   tikbalang:{dmgType:'phys',build:['bakya','baluti','puso','balabal','kalasag','anting']},
   aswang:{dmgType:'phys',build:['bakya','ngipin','kampilan','baluti','sibat','puso']},
   manananggal:{dmgType:'phys',build:['tsinelas','kampilan','sibat','kris','ngipin','balabal']},
-  whitelady:{dmgType:'mag',build:['sandalyas','hiyas','tungkod','mata','buwan','puso']}};
+  whitelady:{dmgType:'mag',build:['sandalyas','hiyas','tungkod','mata','buwan','puso']},
+  ghosthunter:{dmgType:'mag',build:['sandalyas','aklat','tungkod','mata','hiyas','puso']},
+  kantoking:{dmgType:'phys',build:['bakya','ngipin','kampilan','baluti','sibat','puso']},
+  spiderknight:{dmgType:'phys',build:['tsinelas','kampilan','sibat','kris','ngipin','balabal']},
+  roachknight:{dmgType:'phys',build:['bakya','baluti','puso','balabal','kalasag','anting']},
+  cheflechon:{dmgType:'phys',build:['tsinelas','pana','kris','ngipin','sibat','balabal']}};
 for(const k in HERO_EXTRA)Object.assign(HEROES[k],HERO_EXTRA[k]);
-const CREEPS={boar:{name:'Baboy-ramo',hp:620,atk:30,range:26,aspd:0.9,speed:170,r:18,armor:0.05,gold:48,xp:55},
+const CREEPS={boar:{name:'Wild Boar',hp:620,atk:30,range:26,aspd:0.9,speed:170,r:18,armor:0.05,gold:48,xp:55},
   sigbin:{name:'Sigbin',hp:560,atk:36,range:26,aspd:1.0,speed:180,r:17,armor:0.05,gold:48,xp:55},
   boss:{name:'Bakunawa',hp:4800,atk:95,range:80,aspd:0.6,speed:0,r:52,armor:0.2,gold:200,xp:320}};
 const CAMPS=[{x:950,y:1500,type:'boar'},{x:1700,y:2300,type:'boar'},{x:2250,y:1700,type:'sigbin'},{x:1500,y:900,type:'sigbin'},{x:915,y:1060,type:'boss'}];
@@ -595,7 +632,7 @@ function giveXP(dead,amt,rad){
   for(const h of hs){h.xp+=share;while(h.lvl<15&&h.xp>=needXP(h.lvl)){h.xp-=needXP(h.lvl);h.lvl++;S.vfx.push({k:'lvl',id:h.id});const r=h.hp/h.maxHp;recalc(h);h.hp=Math.min(h.maxHp,h.maxHp*r+h.maxHp*0.1);
     ring(h.x,h.y,20,90,'#f2c14e',0.6);if(h===S.player&&!S.attract)addText(h.x,h.y-50,'LEVEL '+h.lvl,'#f2c14e',1.6)}}
 }
-function heroLabel(h){return h.def.name+(h===S.player&&!S.attract?' (Ikaw)':'')}
+function heroLabel(h){return h.def.name+(h===S.player&&!S.attract?' (You)':'')}
 function kill(t,src){
   t.dead=true;t.hp=0;t.diedAt=S.t;t.windT=0;
   const foe=1-t.team;
@@ -611,7 +648,7 @@ function kill(t,src){
     helpers.forEach(a=>{a.gold+=95;a.assists++});
     t.streak=0;t.dmgBy.clear();
     giveXP(t,170+32*t.lvl,950);
-    pushEvent(killer?{a:killer,b:t}:{txt:t.def.name+' ay napatay ng depensa',team:foe});
+    pushEvent(killer?{a:killer,b:t}:{txt:t.def.name+' was killed by a tower',team:foe});
     burst(t.x,t.y,t.def.color,26);S.vfx.push({k:'die',x:t.x,y:t.y});
   }else if(t.kind==='minion'){
     const g=t.siege?72:t.ranged?42:34;
@@ -623,13 +660,13 @@ function kill(t,src){
     const C=CREEPS[t.ctype];
     if(t.ctype==='boss'){let team=src&&(src.team===0||src.team===1)?src.team:-1;
       if(team<0){let best=null,bd=1e9;for(const h of S.heroes)if(!h.dead&&dist(h,t)<bd){bd=dist(h,t);best=h}if(best)team=best.team}
-      if(team>=0){for(const h of S.heroes)if(h.team===team){h.gold+=C.gold;S.vfx.push({k:'coins',x:t.x,y:t.y,id:h.id,n:10})}pushEvent({txt:'Napatay ng '+TEAM_NAMES[team]+' ang Bakunawa! +'+C.gold+' gold sa bawat isa',team})}
+      if(team>=0){for(const h of S.heroes)if(h.team===team){h.gold+=C.gold;S.vfx.push({k:'coins',x:t.x,y:t.y,id:h.id,n:10})}pushEvent({txt:TEAM_NAMES[team]+' slew the Bakunawa! +'+C.gold+' gold each',team})}
       giveXP(t,C.xp,1000);burst(t.x,t.y,'#6fe3d0',50)}
     else{if(src&&src.kind==='hero'){src.gold+=C.gold;S.vfx.push({k:'coins',x:t.x,y:t.y,id:src.id,n:5})}else for(const h of S.heroes)if(!h.dead&&dist(h,t)<600)h.gold+=C.gold*0.4;giveXP(t,C.xp,800);burst(t.x,t.y,t.ctype==='boar'?'#a0703f':'#7a4fa8',10)}
   }else if(t.kind==='tower'){
     for(const h of S.heroes)if(h.team===foe)h.gold+=170;S.vfx.push({k:'tower',x:t.x,y:t.y});
     giveXP(t,160,900);
-    pushEvent({txt:'Nawasak ang tore ng '+TEAM_NAMES[t.team]+' sa '+LANE_NAMES[t.lane],team:foe});
+    pushEvent({txt:TEAM_NAMES[t.team]+' '+LANE_NAMES[t.lane]+' tower destroyed',team:foe});
     burst(t.x,t.y,'#f2c14e',40);ring(t.x,t.y,30,220,'#f2c14e',0.8);
   }else if(t.kind==='core'){
     burst(t.x,t.y,'#f2c14e',80);ring(t.x,t.y,40,420,'#ffffff',1.2);
@@ -1000,7 +1037,7 @@ function pose(u,now){
 
 // ---------- menu / HUD shared state ----------
 const hasGL=typeof THREE!=='undefined'&&(()=>{try{const c=document.createElement('canvas');return!!(c.getContext('webgl')||c.getContext('experimental-webgl'))}catch(e){return false}})();
-if(!hasGL){$('menu').querySelector('.sub').textContent='Hindi gumana ang 3D sa device o browser na ito. Subukan sa Chrome o i-refresh ang page.';$('start').disabled=true}
+if(!hasGL){$('menu').querySelector('.sub').textContent='3D is not supported on this device or browser. Try Chrome or refresh the page.';$('start').disabled=true}
 
 let vw=0,vh=0,dpr=1;
 const cam={x:600,y:2600,free:false,mode:'lock',D:1000};
@@ -1328,6 +1365,144 @@ function animWhiteLady(r,P,u,now){
   setArm(r.arms[1],aF,0.15,0.2);setArm(r.arms[0],aB,0.15,0.2);
   const ph=(u.phaseT||0)>0;r.alpha=ph?0.3:0.88;r.aura.material.opacity=ph?0.6:0.22+0.06*Math.sin(now*2);
 }
+// ---- new heroes: Spirit Hunter, Kanto King, Spider Knight, Roach Knight, Chef Lechon ----
+function buildGhostHunter(){
+  const r=rigBase({hip:19,leg:10,legR:2.8,legGap:3.4,legCol:0x2e3138,boot:0x1b130d,torso:23,shW:8.8,arm:9,armR:2.5,armCol:0x8a7350,skin:0xc08a5c,headR:7.3});
+  const coat=r.mk(0x8a7350),dark=r.mk(0x1f1a16),shirt=r.mk(0xe8e2d0),hair=r.mk(0x18120e),metal=r.mk(0x9aa3ad,{emissive:0x222222});
+  const cg=new THREE.CylinderGeometry(7.4,12.5,30,12,3,true);cg.translate(0,-6,0);r.coat=mesh(cg,r.mk(0x8a7350,{side:THREE.DoubleSide}),r.torso,0,10,0);r.coatBase=cg.attributes.position.array.slice();
+  mesh(G('ghTop',()=>new THREE.CylinderGeometry(7,7.6,14,10)),coat,r.torso,0,16,0);
+  mesh(G('ghShirt',()=>new THREE.BoxGeometry(1,12,5)),shirt,r.torso,7.3,16,0);
+  [-1,1].forEach(s=>{const l=mesh(G('ghLapel',()=>new THREE.BoxGeometry(1.2,10,3)),dark,r.torso,7.6,17,s*3.2);l.rotation.x=-s*0.35});
+  mesh(G('ghHair',()=>new THREE.SphereGeometry(7.8,12,8,0,TAU,0,Math.PI*0.5)),hair,r.head,-0.6,0.8,0);
+  face(r,{brow:0x18120e});
+  // eyeglasses
+  const gl=r.mk(0x111111);[-1,1].forEach(s=>{const ring=mesh(G('ghGlass',()=>new THREE.TorusGeometry(1.7,0.35,5,12)),gl,r.head,7.3,0.9,s*2.7);ring.rotation.y=Math.PI/2});
+  // rosary
+  const bead=r.mk(0x3a2a1e);for(let i=0;i<9;i++){const a=-1.1+i*0.275;mesh(sph(0.7,5,4),bead,r.torso,6.5+Math.cos(a)*1.5,20-Math.abs(a)*5,Math.sin(a)*5.5)}
+  mesh(G('ghCross',()=>new THREE.BoxGeometry(0.6,3.2,1.8)),r.mk(0xd8c37a),r.torso,8,13,0);
+  // flashlight in right hand
+  r.light=joint(r.arms[1].hand,0,0,0);
+  mesh(G('ghTorch',()=>{const g=new THREE.CylinderGeometry(1.2,1.6,10,8);g.rotateZ(-Math.PI/2);g.translate(5,0,0);return g}),metal,r.light);
+  r.lens=mesh(G('ghLens',()=>{const g=new THREE.CylinderGeometry(1.9,1.9,0.8,10);g.rotateZ(-Math.PI/2);return g}),basic(0xfff3b0),r.light,10.2,0,0);
+  r.beam=glowSprite(0xfff1a8,22,r.light);r.beam.position.set(12,0,0);
+  // salt pouch
+  mesh(G('ghPouch',()=>new THREE.BoxGeometry(4,5,3)),r.mk(0xece6d6),r.hips,0,-1,-8);
+  r.tip=r.light;return r;
+}
+function animGhostHunter(r,P,u,now){
+  animCommon(r,P);
+  const pa=r.coat.geometry.attributes.position,b=r.coatBase;
+  for(let i=0;i<pa.count;i++){const y=b[i*3+1],t=Math.max(0,(-y+9)/30);pa.array[i*3]=b[i*3]-t*t*(2+P.mv*9)+Math.sin(now*5+b[i*3+2])*t*0.8}pa.needsUpdate=true;
+  let aF=1.0+P.armF*0.2,aB=0.2+P.armB*0.3,el=0.5;
+  if(P.atk>=0){aF=1.45+swing(P.atk)*0.3;el=0.1}
+  if(P.cast>=0){const c=ease(P.cast);if(P.castIdx===1){aB=0.6+c*1.4;r.arms[0].el.rotation.z=0.2}else{aF=1.5+c*0.3;aB=1.2+c*0.9}}
+  setArm(r.arms[1],aF,el,0.15);setArm(r.arms[0],aB,0.3,0.15);
+  r.light.rotation.z=-(aF+el)+Math.PI/2;
+  r.beam.material.opacity=0.55+0.25*Math.sin(now*9)+(P.atk>=0||P.cast>=0?0.4:0);
+}
+function buildKantoKing(){
+  const r=rigBase({hip:19,leg:9.5,legR:3.2,legGap:3.8,legCol:0x2a3a6a,boot:0x3a6ad8,torso:23,shW:10,arm:9.5,armR:3.1,armCol:0xb57a4c,skin:0xb57a4c,headR:7.4});
+  const jersey=r.mk(0xff7a1f),trim=r.mk(0xffffff),band=r.mk(0xd12b2b),gold=r.mk(0xf2c14e,{emissive:0x332200}),hair=r.mk(0x111111),towel=r.mk(0xf4f0e6);
+  mesh(G('kkJersey',()=>new THREE.CylinderGeometry(8,8.8,22,10)),jersey,r.torso,0,11,0);
+  mesh(G('kkNum',()=>new THREE.BoxGeometry(0.6,7,5)),trim,r.torso,8.6,13,0);
+  mesh(G('kkShorts',()=>new THREE.CylinderGeometry(9,9.8,8,10)),r.mk(0x2a3a6a),r.hips,0,-2,0);
+  mesh(G('kkHair',()=>new THREE.SphereGeometry(7.7,12,8,0,TAU,0,Math.PI*0.45)),hair,r.head,-0.4,1.2,0);
+  const bd=mesh(G('kkBand',()=>new THREE.TorusGeometry(7.6,1.1,6,18)),band,r.head,0,2.5,0);bd.rotation.x=Math.PI/2;
+  r.bandTail=joint(r.head,-7,2.5,0);mesh(G('kkBandT',()=>{const g=new THREE.BoxGeometry(1,7,3);g.translate(0,-3.5,0);return g}),band,r.bandTail);
+  face(r,{brow:0x111111});
+  const ch=mesh(G('kkChain',()=>new THREE.TorusGeometry(5.2,0.6,5,16)),gold,r.torso,3,20,0);ch.rotation.z=Math.PI/2.4;ch.rotation.y=Math.PI/2;
+  r.towel=joint(r.torso,0,23,-8);mesh(G('kkTowel',()=>{const g=new THREE.BoxGeometry(7,14,1.4);g.translate(0,-7,0);return g}),towel,r.towel);
+  r.fists=r.arms.map(a=>{a.hand.children[0].scale.setScalar(1.45);const w=mesh(G('kkWrap',()=>new THREE.TorusGeometry(2.8,0.8,5,10)),trim,a.el,0,-8,0);w.rotation.x=Math.PI/2;return a.hand});
+  r.tip=r.arms[1].hand;return r;
+}
+function animKantoKing(r,P,u,now){
+  animCommon(r,P);
+  const pump=(u.formT||0)>0;r.body.scale.setScalar(pump?1.18:1);
+  let aF=0.7+P.armF*0.3,aB=0.7+P.armB*0.3,elF=1.6,elB=1.6;
+  if(P.atk>=0){const k=P.atk,v=k<0.35?k/0.35:k<0.55?1:1-(k-0.55)/0.45;if(P.alt){aF=0.7+v*1.0;elF=1.6-v*1.5}else{aB=0.7+v*1.0;elB=1.6-v*1.5}r.torso.rotation.y=(P.alt?-1:1)*v*0.35}
+  if(P.dash){aF=1.7;elF=0.1;aB=0.4}
+  if(P.cast>=0&&P.castIdx===1){const c=Math.sin(P.cast*Math.PI);aF=2.6*c+0.6;aB=2.6*c+0.6;elF=elB=0.3}
+  setArm(r.arms[1],aF,elF,0.3);setArm(r.arms[0],aB,elB,0.3);
+  r.head.rotation.z+=Math.sin(now*3)*0.05;r.bandTail.rotation.z=-0.4-P.mv*0.7+Math.sin(now*7)*0.15;r.towel.rotation.z=-0.1-P.mv*0.3;
+}
+function buildSpiderKnight(){
+  const r=rigBase({hip:18,leg:10,legR:2.5,legGap:3.2,legCol:0x16301f,boot:0x0b130e,torso:21,shW:8.2,arm:9,armR:2.3,armCol:0x16301f,skin:0x16301f,headR:7});
+  const suit=r.mk(0x16301f),web=r.mk(0x9ff5b4,{emissive:0x0c3318}),red=basic(0x7dff9a),dark=r.mk(0x0b130e);
+  mesh(G('skTorso',()=>new THREE.CylinderGeometry(6.6,7.6,21,10)),suit,r.torso,0,10.5,0);
+  for(let i=0;i<4;i++){const ln=mesh(G('skLine',()=>new THREE.BoxGeometry(0.5,21,0.6)),web,r.torso,7.2,10.5,(i-1.5)*2.6);ln.rotation.x=(i-1.5)*0.15}
+  mesh(G('skEmb',()=>{const g=new THREE.SphereGeometry(1,8,6);g.scale(1,3.2,2.2);return g}),red,r.torso,7.6,15,0);
+  r.skull.material=suit;
+  [[1.6,1.4],[-1.6,1.4],[2.8,0.2],[-2.8,0.2]].forEach(([z,y],i)=>mesh(sph(i<2?1.3:0.8,6,5),red,r.head,6.6,y,z));
+  r.eyeGlow=glowSprite(0x7dff9a,10,r.head);r.eyeGlow.position.set(7,1,0);
+  r.sleg=[];[-1,1].forEach(s=>{for(let i=0;i<2;i++){const j=joint(r.torso,-5,16-i*5,s*4);j.rotation.x=s*(0.9+i*0.35);
+    mesh(limbGeo(1.1,0.9,11),dark,j);const k=joint(j,0,-11,0);k.rotation.z=-0.9;mesh(limbGeo(0.9,0.3,11),web,k);j.base=j.rotation.x;j.s=s;j.i=i;r.sleg.push(j)}});
+  r.arms.forEach(a=>{for(let c=-1;c<=1;c+=2)mesh(G('skClaw',()=>{const g=new THREE.ConeGeometry(0.6,4,4);g.rotateZ(Math.PI);g.translate(0,-2,0);return g}),web,a.hand,0.6,-1.5,c*1)});
+  r.tip=r.arms[1].hand;return r;
+}
+function animSpiderKnight(r,P,u,now){
+  animCommon(r,P);
+  r.hips.position.y-=2;r.torso.rotation.z-=0.18;
+  let aF=0.5+P.armF*0.3,aB=0.5+P.armB*0.3,el=0.6;
+  if(P.atk>=0){const v=swing(P.atk);if(P.alt)aF=1.3+v*0.9;else aB=1.3+v*0.9;el=0.2}
+  if(P.cast>=0&&P.castIdx===0){const c=ease(P.cast);aF=1.6;el=0.05*c}
+  if(P.dash){aF=-0.8;aB=-0.8}
+  setArm(r.arms[1],aF,el,0.2);setArm(r.arms[0],aB,el,0.2);
+  r.sleg.forEach(j=>{j.rotation.x=j.base+Math.sin(now*(P.mv>0.2?14:2.5)+j.i*1.7+(j.s>0?0:Math.PI))*(P.mv>0.2?0.35:0.1);j.rotation.z=P.atk>=0?0.6:0.1});
+}
+function buildRoachKnight(){
+  const r=rigBase({hip:19,leg:10,legR:3.6,legGap:4.6,legCol:0x4a2a14,boot:0x1d0f06,torso:24,shW:11,arm:10,armR:3.4,armCol:0x5a3418,skin:0x6b3e1c,headR:6.8});
+  r.body.scale.setScalar(1.18);
+  const shell=r.mk(0x7a4a22,{emissive:0x1a0c02}),belly=r.mk(0xc0914f),dark=r.mk(0x2a1608),shine=r.mk(0xb87a3c,{emissive:0x2a1406});
+  mesh(G('rkTorso',()=>{const g=new THREE.SphereGeometry(1,12,10);g.scale(10,14,10.5);return g}),belly,r.torso,0,12,0);
+  for(let i=0;i<4;i++)mesh(G('rkBand',()=>new THREE.TorusGeometry(9.4,0.7,4,16)),dark,r.torso,0,5+i*4.6,0).rotation.x=Math.PI/2;
+  r.shell=joint(r.torso,-5,20,0);
+  [-1,1].forEach(s=>{const w=mesh(G('rkWing',()=>{const g=new THREE.SphereGeometry(1,12,10,0,Math.PI);g.scale(7,24,13);g.translate(0,-11,0);return g}),shell,r.shell,0,0,s*0.4);w.rotation.y=Math.PI/2;w.rotation.x=0;w.position.z=s*5.2;w.scale.z=0.55});
+  mesh(G('rkShine',()=>{const g=new THREE.BoxGeometry(1,20,1.2);g.translate(0,-10,0);return g}),shine,r.shell,-5,0,0);
+  mesh(G('rkHelm',()=>new THREE.SphereGeometry(7.6,12,8,0,TAU,0,Math.PI*0.55)),shell,r.head,-0.5,0.6,0);
+  eyes(r,0xffd36b,true);
+  r.ant=[-1,1].map(s=>{const a=joint(r.head,4,6,s*2.5);a.rotation.x=s*0.35;mesh(limbGeo(0.45,0.25,22),dark,a);a.rotation.z=-2.4;a.s=s;return a});
+  r.mini=[-1,1].map(s=>{const m=joint(r.torso,4,12,s*8.5);mesh(limbGeo(1.3,0.8,8),dark,m);m.rotation.x=s*0.4;m.s=s;return m});
+  r.arms.forEach(a=>{a.hand.children[0].scale.setScalar(1.3);mesh(G('rkSpike',()=>new THREE.ConeGeometry(1.2,5,4)),dark,a.el,-2,-4,0).rotation.z=Math.PI/2});
+  r.tip=r.arms[1].hand;return r;
+}
+function animRoachKnight(r,P,u,now){
+  animCommon(r,P);
+  let aF=0.35+P.armF*0.4,aB=0.35+P.armB*0.4,el=0.5;
+  if(P.atk>=0){const v=swing(P.atk);aF=1.0+v*1.1;aB=0.9+v*0.9;el=0.2}
+  if(P.dash){aF=1.4;aB=1.4;el=0.1;r.head.rotation.z=-0.35}
+  const sh=P.cast>=0&&P.castIdx===1?Math.sin(P.cast*Math.PI):0;
+  setArm(r.arms[1],aF+sh*0.8,el,0.25+sh*0.6);setArm(r.arms[0],aB+sh*0.8,el,0.25+sh*0.6);
+  r.shell.rotation.z=(P.cast>=0&&P.castIdx===2?Math.sin(P.cast*Math.PI)*0.7:0)+Math.sin(now*2)*0.02;
+  r.ant.forEach((a,i)=>{a.rotation.z=-2.4+Math.sin(now*5+i*2)*0.25+P.mv*0.3;a.rotation.y=Math.sin(now*3.3+i)*0.3});
+  r.mini.forEach((m,i)=>m.rotation.z=0.4+Math.sin(now*9+i*Math.PI)*0.4);
+}
+function buildChefLechon(){
+  const r=rigBase({hip:18,leg:9,legR:3.2,legGap:4,legCol:0x2b2b2b,boot:0x111111,torso:22,shW:10.5,arm:9,armR:3,armCol:0xf5f2ea,skin:0xd29a6a,headR:7.6});
+  const white=r.mk(0xf7f4ec),apron=r.mk(0xd8402c),wood=r.mk(0x7a4a24),meat=r.mk(0xb4561e,{emissive:0x2a0a00}),steel=r.mk(0xd9dee6);
+  mesh(G('clBelly',()=>{const g=new THREE.SphereGeometry(1,12,10);g.scale(10.5,12.5,11);return g}),white,r.torso,0,11,0);
+  mesh(G('clApron',()=>new THREE.BoxGeometry(1.2,16,12)),apron,r.torso,10,7,0);
+  for(let i=0;i<3;i++)mesh(sph(0.8,5,4),r.mk(0x222222),r.torso,10.8,13-i*3.5,0);
+  const sc=mesh(G('clScarf',()=>new THREE.TorusGeometry(5.5,1.3,5,14)),apron,r.torso,0,22,0);sc.rotation.x=Math.PI/2;
+  r.hat=joint(r.head,-0.5,5,0);mesh(G('clHatB',()=>new THREE.CylinderGeometry(7,6.8,6,12)),white,r.hat,0,1,0);mesh(G('clHatT',()=>{const g=new THREE.SphereGeometry(1,12,10);g.scale(9,6.5,9);return g}),white,r.hat,0,7,0);
+  face(r,{brow:0x3a2414});
+  [-1,1].forEach(s=>{const m=mesh(G('clMust',()=>{const g=new THREE.SphereGeometry(1,8,6);g.scale(1.2,1.1,3.2);return g}),r.mk(0x2a1a10),r.head,7.6,-2.5,s*2.4);m.rotation.x=s*0.4});
+  r.skewer=joint(r.arms[1].hand,0,0,0);
+  mesh(G('clStick',()=>{const g=new THREE.CylinderGeometry(0.5,0.5,30,5);g.rotateZ(-Math.PI/2);g.translate(10,0,0);return g}),wood,r.skewer);
+  for(let i=0;i<4;i++)mesh(G('clMeat',()=>new THREE.BoxGeometry(3.6,3.6,3.6)),meat,r.skewer,8+i*4.6,0,0).rotation.set(i*0.6,i*0.4,0);
+  r.ladle=joint(r.arms[0].hand,0,0,0);mesh(G('clLadle',()=>{const g=new THREE.CylinderGeometry(0.5,0.5,14,5);g.translate(0,-7,0);return g}),steel,r.ladle);mesh(sph(2.4,8,6),steel,r.ladle,0,-14,0);
+  r.steam=glowSprite(0xffb347,18,r.skewer);r.steam.position.set(16,2,0);
+  r.tip=r.skewer;return r;
+}
+function animChefLechon(r,P,u,now){
+  animCommon(r,P);
+  r.torso.rotation.y=Math.sin((u.walkPh||0))*0.12*P.mv;
+  let aF=0.9+P.armF*0.2,aB=0.3+P.armB*0.3,el=0.9;
+  if(P.atk>=0){const k=P.atk,v=k<0.4?k/0.4:1-(k-0.4)/0.6;aF=1.2+v*1.4;el=0.9-v*0.8}
+  if(P.cast>=0){const c=ease(P.cast);if(P.castIdx===1){aB=0.6+c*2.2;r.ladle.rotation.z=-c*1.5}else{aF=2.6-c*1.3;el=0.1}}
+  setArm(r.arms[1],aF,el,0.2);setArm(r.arms[0],aB,0.5,0.25);
+  r.skewer.rotation.z=-(aF+el)+Math.PI/2;r.hat.rotation.z=-P.mv*0.15+Math.sin(now*2.2)*0.04;
+  r.steam.material.opacity=0.35+0.2*Math.sin(now*6);
+}
 function smoothRig(e,dt){
   if(!e.joints){e.joints=[];e.rig.root.traverse(o=>{if(o.isGroup&&o!==e.rig.root&&o!==e.rig.body)e.joints.push(o)})}
   const k=1-Math.exp(-dt*22);
@@ -1343,9 +1518,14 @@ function fidget(r,u,f){const k=Math.sin(f*Math.PI),w=Math.sin(f*TAU*2);
     case'aswang':r.hips.position.y-=k*5;r.torso.rotation.z-=k*0.5;r.head.rotation.y=w*0.6*k;break;
     case'manananggal':r.wings.forEach(w2=>w2.rotation.x=-w2.s*(0.15+k*1.2));r.head.rotation.z=-k*0.3;break;
     case'whitelady':r.head.rotation.x=k*0.55;r.hips.position.y+=k*6;r.arms.forEach(a=>a.sh.rotation.z+=k*0.8);break;
+    case'ghosthunter':r.arms[1].sh.rotation.x=-k*0.9;r.head.rotation.y=w*0.5*k;break;
+    case'kantoking':r.arms.forEach(a=>a.sh.rotation.z+=k*1.6);r.torso.rotation.y=w*0.3*k;break;
+    case'spiderknight':r.sleg.forEach(j=>j.rotation.x=j.base+w*0.5*k);r.hips.position.y-=k*4;break;
+    case'roachknight':r.ant.forEach(a=>a.rotation.y=w*0.8*k);r.shell.rotation.z=k*0.4;break;
+    case'cheflechon':r.skewer.rotation.x=w*1.2*k;r.hat.rotation.z=k*0.2;break;
   }}
-const BUILD3D={kidlat:buildKidlat,amihan:buildAmihan,bagwis:buildBagwis,tikbalang:buildTikbalang,aswang:buildAswang,manananggal:buildManananggal,whitelady:buildWhiteLady};
-const ANIM3D={kidlat:animKidlat,amihan:animAmihan,bagwis:animBagwis,tikbalang:animTikbalang,aswang:animAswang,manananggal:animManananggal,whitelady:animWhiteLady};
+const BUILD3D={kidlat:buildKidlat,amihan:buildAmihan,bagwis:buildBagwis,tikbalang:buildTikbalang,aswang:buildAswang,manananggal:buildManananggal,whitelady:buildWhiteLady,ghosthunter:buildGhostHunter,kantoking:buildKantoKing,spiderknight:buildSpiderKnight,roachknight:buildRoachKnight,cheflechon:buildChefLechon};
+const ANIM3D={kidlat:animKidlat,amihan:animAmihan,bagwis:animBagwis,tikbalang:animTikbalang,aswang:animAswang,manananggal:animManananggal,whitelady:animWhiteLady,ghosthunter:animGhostHunter,kantoking:animKantoKing,spiderknight:animSpiderKnight,roachknight:animRoachKnight,cheflechon:animChefLechon};
 
 // ---------- lane minions: spear soldiers, babaylan casters, siege carts ----------
 function minionMats(team){const k='m'+team;if(matC[k])return matC[k];
@@ -2235,7 +2415,7 @@ function resize(){
   ov.width=Math.round(vw*dpr);ov.height=Math.round(vh*dpr);
   if(renderer){pxrMax=LOW?Math.min(1.25,dpr):Math.min(1.5,dpr);pxr=Math.min(pxr>0?Math.max(pxr,LOW?0.9:1):pxrMax,pxrMax);renderer.setPixelRatio(pxr);renderer.setSize(vw,vh,false);camera.aspect=vw/vh;camera.updateProjectionMatrix();uniK.value=vh*pxr/(2*Math.tan(20*Math.PI/180))}
 }
-if(hasGL){try{initGL()}catch(err){console.error(err);$('menu').querySelector('.sub').textContent='Hindi gumana ang 3D sa device na ito.';$('start').disabled=true}}
+if(hasGL){try{initGL()}catch(err){console.error(err);$('menu').querySelector('.sub').textContent='3D is not supported on this device.';$('start').disabled=true}}
 window.addEventListener('resize',resize);resize();
 
 // ---------- HUD ----------
@@ -2246,7 +2426,7 @@ function hud(dt){
   hudT-=dt;if(!S)return;
   if(S.attract){if(hudT<=0){hudT=0.1;drawMinimap()}return}
   while(lastEv<S.events.length){const e=S.events[lastEv++];const d=document.createElement('div');
-    if(e.a){const ca=e.a.team?'rd':'bl',cb=e.b.team?'rd':'bl';d.innerHTML='<span class="'+ca+'"></span> pinatay si <span class="'+cb+'"></span>';d.children[0].textContent=heroLabel(e.a);d.children[1].textContent=heroLabel(e.b)}
+    if(e.a){const ca=e.a.team?'rd':'bl',cb=e.b.team?'rd':'bl';d.innerHTML='<span class="'+ca+'"></span> killed <span class="'+cb+'"></span>';d.children[0].textContent=heroLabel(e.a);d.children[1].textContent=heroLabel(e.b)}
     else{d.textContent=e.txt;d.style.color=e.team?'var(--foe)':'var(--ally)'}
     $('feed').prepend(d);setTimeout(()=>d.remove(),4500);while($('feed').children.length>4)$('feed').lastChild.remove()}
   if(hudT>0)return;hudT=0.1;
@@ -2277,9 +2457,9 @@ function renderShop(force){
   const p=S.player,sig=shopTab+'|'+p.items.join(',')+'|'+Math.floor(p.gold/25);if(!force&&sig===shopSig)return;shopSig=sig;
   const owned=$('owned');owned.textContent='';
   for(let i=0;i<6;i++){const b=document.createElement('button');b.className='slot';const id=p.items[i];
-    if(id){b.append(itemIcon(id));b.title=ITEMS[id].name+': ibenta sa '+Math.floor(ITEMS[id].cost*0.6)+' gold';b.setAttribute('aria-label',b.title);b.addEventListener('click',()=>{sellItem(p,i);renderShop(true)})}else b.disabled=true;owned.append(b)}
+    if(id){b.append(itemIcon(id));b.title=ITEMS[id].name+': sell for '+Math.floor(ITEMS[id].cost*0.6)+' gold';b.setAttribute('aria-label',b.title);b.addEventListener('click',()=>{sellItem(p,i);renderShop(true)})}else b.disabled=true;owned.append(b)}
   const list=$('shoplist');list.textContent='';const next=nextBuild(p);
-  if(shopTab==='rec'){const h=document.createElement('div');h.className='hint';h.textContent='Mungkahing build ni '+p.def.name+'. Ang naka-gintong guhit ang susunod.';list.append(h)}
+  if(shopTab==='rec'){const h=document.createElement('div');h.className='hint';h.textContent='Recommended build for '+p.def.name+'. The gold outline is next.';list.append(h)}
   const ids=shopTab==='rec'?(p.def.build||[]):Object.keys(ITEMS).filter(id=>ITEMS[id].cat===shopTab);
   for(const id of ids){const it=ITEMS[id],row=document.createElement('div');row.className='it'+(id===next?' rec':'');
     const nm=document.createElement('b');nm.textContent=it.name+(p.items.includes(id)?' · meron':'');
@@ -2290,10 +2470,10 @@ function renderShop(force){
 function buy(id){const p=S.player;if(!p||!buyItem(p,id))return;ring(p.x,p.y,10,60,'#f2c14e',0.5);S.vfx.push({k:'lvl',id:p.id});if(!$('shop').hidden)renderShop(true)}
 function renderStats(){const p=S.player,el=$('statp');
   const pd=Math.round((1-(1-p.armor)*120/(120+p.pdef))*100),md=Math.round((1-0.95*120/(120+p.mres))*100);
-  const rows=[['Buhay',Math.ceil(p.hp)+'/'+Math.round(p.maxHp)],['Atake',Math.round(p.atk)],['Mahika',Math.round(p.mp)],['P.Depensa',Math.round(p.pdef)+' · '+pd+'%'],['M.Depensa',Math.round(p.mres)+' · '+md+'%'],
-    ['Bilis atake',aspdOf(p).toFixed(2)+'/s'],['Crit',Math.round(p.crit*100)+'%'],['Crit dmg',Math.round(p.critDmg*100)+'%'],['Lifesteal',Math.round(p.ls*100)+'%'],['Spell vamp',Math.round(p.sv*100)+'%'],
-    ['Cooldown',p.cdr>0?'-'+Math.round(p.cdr*100)+'%':'0%'],['P.Pen',p.pen],['M.Pen',p.mpen],['Regen',(p.maxHp*0.004+p.regen).toFixed(1)+'/s'],['Bilis',Math.round(effSpeed(p))]];
-  el.textContent='';const h=document.createElement('div');h.className='sh';h.textContent=p.def.name+' · Lv '+p.lvl+' · '+(p.def.dmgType==='mag'?'Mahika':'Pisikal');el.append(h);
+  const rows=[['HP',Math.ceil(p.hp)+'/'+Math.round(p.maxHp)],['Attack',Math.round(p.atk)],['Magic',Math.round(p.mp)],['P.Defense',Math.round(p.pdef)+' · '+pd+'%'],['M.Defense',Math.round(p.mres)+' · '+md+'%'],
+    ['Atk speed',aspdOf(p).toFixed(2)+'/s'],['Crit',Math.round(p.crit*100)+'%'],['Crit dmg',Math.round(p.critDmg*100)+'%'],['Lifesteal',Math.round(p.ls*100)+'%'],['Spell vamp',Math.round(p.sv*100)+'%'],
+    ['Cooldown',p.cdr>0?'-'+Math.round(p.cdr*100)+'%':'0%'],['P.Pen',p.pen],['M.Pen',p.mpen],['Regen',(p.maxHp*0.004+p.regen).toFixed(1)+'/s'],['Speed',Math.round(effSpeed(p))]];
+  el.textContent='';const h=document.createElement('div');h.className='sh';h.textContent=p.def.name+' · Lv '+p.lvl+' · '+(p.def.dmgType==='mag'?'Magic':'Physical');el.append(h);
   for(const[k,v]of rows){const a=document.createElement('span');a.textContent=k;const b=document.createElement('b');b.textContent=v;el.append(a,b)}}
 function toggleShop(force){const sh=$('shop');sh.hidden=force!==undefined?!force:!sh.hidden;if(!sh.hidden)renderShop(true)}
 $('tabs').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{shopTab=b.dataset.c;$('tabs').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));renderShop(true)}));
@@ -2304,16 +2484,16 @@ $('autobtn').addEventListener('click',()=>setAuto(!AUTO_ATTACK));
 $('statbtn').addEventListener('click',()=>{$('statp').hidden=!$('statp').hidden;if(!$('statp').hidden)renderStats()});
 function showEnd(){
   const win=S.winner===0,p=S.player;
-  $('endTitle').textContent=win?'Tagumpay!':'Talo...';$('endTitle').style.color=win?'var(--gold)':'var(--foe)';
+  $('endTitle').textContent=win?'Victory!':'Defeat...';$('endTitle').style.color=win?'var(--gold)':'var(--foe)';
   const m=Math.floor(S.t/60),s=Math.floor(S.t%60);
-  $('endSub').textContent=(win?'Nawasak ninyo ang Puso ng Pula':'Nawasak ang Puso ng Asul')+' sa loob ng '+m+':'+String(s).padStart(2,'0')+'. Iskor '+S.kills[0]+' - '+S.kills[1]+'.';
+  $('endSub').textContent=(win?'You destroyed the Red Heart':'The Blue Heart was destroyed')+' in '+m+':'+String(s).padStart(2,'0')+'. Score '+S.kills[0]+' - '+S.kills[1]+'.';
   $('eK').textContent=p.kills;$('eD').textContent=p.deaths;$('eA').textContent=p.assists;
   $('end').hidden=false;showHud(false);
 }
 function showHud(on){for(const id of['top','feed','mmwrap','tr','pad','joy','joyzone','zoom'])$(id).hidden=!on;if(!on){$('shop').hidden=true;$('dead').hidden=true;$('qbuyw').hidden=true}else{$('qbuy').dataset.id=''}}
 
 // ---------- menu with live 3D portraits ----------
-const HSTAT=(()=>{const m={};for(const id in HEROES){const d=HEROES[id];m[id]={Tibay:(d.hp+d.hpG*10)*(1+d.armor*2),Pinsala:(d.atk+d.atkG*10)*d.aspd,Skill:d.skills.reduce((a,s)=>a+(s.dmg||0)+(s.dmgG||0)*10,0),Bilis:d.speed-150}}
+const HSTAT=(()=>{const m={};for(const id in HEROES){const d=HEROES[id];m[id]={Durability:(d.hp+d.hpG*10)*(1+d.armor*2),Damage:(d.atk+d.atkG*10)*d.aspd,Skill:d.skills.reduce((a,s)=>a+(s.dmg||0)+(s.dmgG||0)*10,0),Speed:d.speed-150}}
   const mx={};for(const id in m)for(const k in m[id])mx[k]=Math.max(mx[k]||0,m[id][k]);for(const id in m)for(const k in m[id])m[id][k]=Math.max(0.12,m[id][k]/mx[k]);return m})();
 let pick='kidlat',diff='normal';const PORTRAITS=[];
 const hg=$('heroes');
@@ -2328,9 +2508,9 @@ for(const id in HEROES){const d=HEROES[id],b=document.createElement('button');b.
   PORTRAITS.push(entry)}
 function drawPortraits(now,dt){
   if(!pr)return;
-  for(const p of PORTRAITS){const u=p.u,cyc=(now+PORTRAITS.indexOf(p)*0.7)%6;let lab='Nakatayo';
-    u.moveAmt+=((cyc<2?1:0)-u.moveAmt)*0.2;if(cyc<2){u.walkPh+=dt*9;lab='Naglalakad'}
-    if(cyc>=2.2&&cyc<3.6){const n=Math.floor((cyc-2.2)/0.45);if(u._n!==n){u._n=n;u.atkAt=now;u.atkCount=(u.atkCount||0)+1}lab='Umaatake'}
+  for(const p of PORTRAITS){const u=p.u,cyc=(now+PORTRAITS.indexOf(p)*0.7)%6;let lab='Idle';
+    u.moveAmt+=((cyc<2?1:0)-u.moveAmt)*0.2;if(cyc<2){u.walkPh+=dt*9;lab='Walking'}
+    if(cyc>=2.2&&cyc<3.6){const n=Math.floor((cyc-2.2)/0.45);if(u._n!==n){u._n=n;u.atkAt=now;u.atkCount=(u.atkCount||0)+1}lab='Attacking'}
     if(cyc>=4&&u._c!==Math.floor(now/6)){u._c=Math.floor(now/6);u.castAt=now;u.castIdx=p.id==='amihan'?1:p.id==='tikbalang'?2:p.id==='bagwis'?1:2}
     if(cyc>=4&&cyc<4.6)lab='Skill';
     u.formT=p.id==='aswang'&&cyc>=4&&cyc<5.6?1:0;u.phaseT=p.id==='whitelady'&&cyc>=4&&cyc<5?1:0;
@@ -2390,7 +2570,7 @@ function worldPerPx(){return cam.D*0.78/Math.max(1,vh)}
 const edgeP={x:0,y:0,on:false};
 window.addEventListener('mousemove',e=>{edgeP.x=e.clientX;edgeP.y=e.clientY;edgeP.on=true});
 document.addEventListener('mouseleave',()=>{edgeP.on=false});window.addEventListener('blur',()=>{edgeP.on=false});
-function setMode(m){cam.mode=m;$('zlock').textContent=m==='lock'?'LOCK':'MALAYA';$('zlock').classList.toggle('on',m==='free');try{localStorage.setItem('aa_cammode',m)}catch(e){}if(m==='lock')cam.free=false}
+function setMode(m){cam.mode=m;$('zlock').textContent=m==='lock'?'LOCK':'FREE';$('zlock').classList.toggle('on',m==='free');try{localStorage.setItem('aa_cammode',m)}catch(e){}if(m==='lock')cam.free=false}
 $('zin').addEventListener('click',()=>setZoom(camZoom+0.15));
 $('zout').addEventListener('click',()=>setZoom(camZoom-0.15));
 $('zfocus').addEventListener('click',()=>{cam.free=false});
