@@ -606,8 +606,8 @@ function recalc(h,full){
 }
 function manaCost(h,i){const s=h.def.skills[i],L=h.lvl-1;return Math.round(s.ult?110+L*8:(i?70:55)+L*4)}
 const TOWER_T={base:0.15,inner:0.27,outer:0.41};
-function mkTower(team,pt,lane,tier){const b=tier==='base';return mkUnit({kind:'tower',team,lane,tier,x:pt.x,y:pt.y,r:b?38:34,hp:b?3300:2600,maxHp:b?3300:2600,range:b?350:330,armor:b?0.2:0.15,dmgHero:b?210:175,dmgMinion:b?190:165,combo:0,force:null,forceT:0})}
-function mkCore(team){const b=BASE[team];return mkUnit({kind:'core',team,x:b.x,y:b.y,r:58,hp:4500,maxHp:4500,range:380,armor:0.15,dmgHero:230,dmgMinion:220,combo:0,force:null,forceT:0})}
+function mkTower(team,pt,lane,tier){const b=tier==='base';return mkUnit({kind:'tower',team,lane,tier,x:pt.x,y:pt.y,r:b?38:34,hp:b?3300:2600,maxHp:b?3300:2600,range:b?275:260,armor:b?0.2:0.15,dmgHero:b?210:175,dmgMinion:b?190:165,combo:0,force:null,forceT:0})}
+function mkCore(team){const b=BASE[team];return mkUnit({kind:'core',team,x:b.x,y:b.y,r:58,hp:4500,maxHp:4500,range:300,armor:0.15,dmgHero:230,dmgMinion:220,combo:0,force:null,forceT:0})}
 
 function newGame(heroId,diff,attract,roster){
   UID=0;
