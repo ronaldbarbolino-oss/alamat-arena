@@ -2335,6 +2335,51 @@ function dust(x,y,n,col=[0.55,0.45,0.32]){for(let i=0;i<n;i++){const a=Math.rand
 function lavaCracks(x,y,r){for(let i=0;i<9;i++){const a=i*TAU/9+Math.random()*0.3;const pts=[];let px=x,py=y;for(let k=0;k<6;k++){px+=Math.cos(a+(Math.random()-.5)*0.6)*r/6;py+=Math.sin(a+(Math.random()-.5)*0.6)*r/6;pts.push({x:px,y:1.5,z:py})}
   pts.unshift({x,y:1.5,z:y});strip(pts,{mode:'flat',w:9,col:[1,0.45,0.15],life:1.4,max:1.4})}}
 
+// ---------- realistic skill effects for the new heroes ----------
+function waveRing(x,y,r,col,w,life,lift){const pts=[];for(let a=0;a<=TAU+0.01;a+=TAU/48)pts.push({x:x+Math.cos(a)*r,y:hAt(x,y)+(lift||4),z:y+Math.sin(a)*r});strip(pts,{mode:'up',w,col,life,max:life})}
+function waves(x,y,r,col,n,gap){for(let k=0;k<n;k++)R3.timers.push({t:k*(gap||0.09),fn:()=>waveRing(x,y,r*(0.3+0.7*(k+1)/n),col,14+k*4,0.4,4+k*3)})}
+function smoke(x,y,n,col,size,rise){for(let i=0;i<n;i++){const a=Math.random()*TAU,rr=Math.random()*40;emit(x+Math.cos(a)*rr,y+Math.sin(a)*rr,8+Math.random()*20,{vx:Math.cos(a)*40,vy:Math.sin(a)*40,vz:(rise||40)+Math.random()*40,size:(size||30)+Math.random()*20,col,life:1.4,max:1.4,soft:1,drag:0.96})}}
+function sparks(x,y,z,n,col,v){for(let i=0;i<n;i++){const a=Math.random()*TAU,s=(v||220)*(0.5+Math.random());emit(x,y,z,{vx:Math.cos(a)*s,vy:Math.sin(a)*s,vz:80+Math.random()*200,grav:700,size:4+Math.random()*3,col,life:0.5,max:0.5})}}
+function fire(x,y,n,r){for(let i=0;i<n;i++){const a=Math.random()*TAU,rr=Math.random()*(r||40);emit(x+Math.cos(a)*rr,y+Math.sin(a)*rr,6,{vz:90+Math.random()*120,vx:(Math.random()-.5)*40,vy:(Math.random()-.5)*40,size:16+Math.random()*16,col:[1,0.35+Math.random()*0.35,0.08],life:0.6,max:0.6,drag:0.95})}}
+function column(x,y,col,h,life){for(let i=0;i<24;i++)emit(x+(Math.random()-.5)*30,y+(Math.random()-.5)*30,Math.random()*h,{vz:160,size:14,col,life:life||0.8,max:life||0.8,drag:1})}
+function boomLight(x,y,c,i,d,life){R3.flashL.push({x,y,c,i,d,life,max:life,h:40})}
+function newHeroFx(e,h){const d=h?h.defId:e.d,x=h?h.x:e.x,y=h?h.y:e.y;
+  if(e.k==='cast'){const i=e.i;
+    if(d==='requiem'){if(i===0)smoke(x,y,8,[0.4,0.5,0.4],20,60);
+      if(i===1){column(x,y,[0.75,1,0.75],160,1);waves(x,y,170,[0.6,1,0.6],2);boomLight(x,y,0x9dff9a,2,380,0.6)}
+      if(i===2){for(let k=0;k<3;k++)R3.timers.push({t:k*0.35,fn:()=>{waves(x,y,290,[0.75,1,0.8],2,0.06);boomLight(x,y,0xc8ffd0,2.6,620,0.4);R3.shake=Math.max(R3.shake,0.35)}});
+        lavaCracksCol(x,y,260,[0.45,1,0.5]);for(let s=0;s<14;s++){const a=Math.random()*TAU,rr=Math.random()*240;emit(x+Math.cos(a)*rr,y+Math.sin(a)*rr,10,{vz:140+Math.random()*80,size:22,col:[0.75,0.95,0.8],life:1.6,max:1.6,soft:1,drag:0.99})}}}
+    if(d==='keykeeper'){if(i===1){sparks(x,y,30,10,[0.5,1,0.9]);}
+      if(i===2){doorFx(x,y)}}
+    if(d==='rivet'){if(i===0)fire(x,y,10,20);
+      if(i===1){smoke(x,y,10,[0.85,0.85,0.88],18,120);sparks(x,y,40,18,[1,0.6,0.2],160);boomLight(x,y,0xff8a30,1.6,300,0.5)}
+      if(i===2){lavaCracks(x,y,300);waves(x,y,320,[1,0.55,0.2],3);rocksBurst(x,y,24,0x6a6a70,1.3);dust(x,y,26);fire(x,y,30,120);R3.flash=Math.max(R3.flash,0.15);R3.shake=Math.max(R3.shake,0.9);boomLight(x,y,0xff6a20,3,620,1)}}
+    if(d==='elmuerto'){smoke(x+Math.cos(h.face)*30,y+Math.sin(h.face)*30,i===2?10:4,[0.75,0.72,0.68],14,30);boomLight(x+Math.cos(h.face)*30,y+Math.sin(h.face)*30,0xffc060,i===2?3:1.6,280,0.15);if(i===2)R3.shake=Math.max(R3.shake,0.4)}
+    if(d==='lunara'){for(let s=0;s<16;s++){const a=Math.random()*TAU;emit(x+Math.cos(a)*24,y+Math.sin(a)*24,40+Math.random()*30,{vx:Math.cos(a)*60,vy:Math.sin(a)*60,vz:50,size:8,col:[0.75,0.82,1],life:0.7,max:0.7,drag:0.95})}}
+    if(d==='grimclaus'){if(i===1){waves(x,y,170,[1,0.75,0.35],2);fire(x,y,8,60);boomLight(x,y,0xffa040,2,360,0.7)}
+      if(i===2){for(let s=0;s<90;s++){const a=Math.random()*TAU,rr=Math.random()*280;emit(x+Math.cos(a)*rr,y+Math.sin(a)*rr,80+Math.random()*120,{vx:-Math.sin(a)*120,vy:Math.cos(a)*120,vz:-40,size:6+Math.random()*5,col:[0.95,0.97,1],life:1.6,max:1.6,drag:0.99})}
+        waves(x,y,280,[0.8,0.92,1],3);boomLight(x,y,0xcfe6ff,2.8,640,1);R3.flash=Math.max(R3.flash,0.12);R3.shake=Math.max(R3.shake,0.5)}}
+    if(d==='wildheart'){if(i===1){for(let s=0;s<30;s++){const a=s/30*TAU*2;emit(x+Math.cos(a)*50,y+Math.sin(a)*50,10+s*3,{vx:-Math.sin(a)*90,vy:Math.cos(a)*90,vz:40,size:7,col:[0.45+Math.random()*0.3,0.9,0.35],life:1,max:1,drag:0.97})}column(x,y,[0.6,1,0.5],120,0.9)}
+      if(i===2){waves(x,y,260,[0.55,1,0.45],3,0.07);feathers(x,y,40,40,[0.4,0.85,0.3]);dust(x,y,16);boomLight(x,y,0x7aff6a,2.6,560,0.6);R3.shake=Math.max(R3.shake,0.6)}}
+    if(d==='monolith'){if(i===0){waves(x,y,170,[0.75,0.72,0.66],2);rocksBurst(x,y,12,0x8a8a86,0.9);dust(x,y,14);decal(x,y,90,0x1a1814,2.5);R3.shake=Math.max(R3.shake,0.5)}
+      if(i===1){for(let s=0;s<6;s++){const a=s/6*TAU;rocksBurst(x+Math.cos(a)*70,y+Math.sin(a)*70,3,0x8a8a86,0.5)}waves(x,y,160,[0.9,0.75,0.45],1);boomLight(x,y,0xffb040,1.6,320,0.6)}}}
+  if(e.k==='land'){
+    if(d==='keykeeper'){if(e.big)doorFx(x,y);sparks(x,y,30,16,[1,0.9,0.6]);waves(x,y,110,[0.5,1,0.9],1)}
+    if(d==='rivet'){fire(x,y,16,40);sparks(x,y,30,20,[1,0.6,0.2]);dust(x,y,10);waves(x,y,120,[1,0.6,0.25],1);R3.shake=Math.max(R3.shake,0.4);boomLight(x,y,0xff7a30,2,340,0.4)}
+    if(d==='wildheart'){dust(x,y,12);feathers(x,y,20,14,[0.45,0.85,0.35]);waves(x,y,110,[0.6,0.9,0.4],1)}
+    if(d==='monolith'){lavaCracks(x,y,220);rocksBurst(x,y,26,0x8a8a86,1.3);dust(x,y,30);waves(x,y,240,[0.85,0.8,0.7],3);decal(x,y,140,0x141210,3);R3.flash=Math.max(R3.flash,0.1);R3.shake=Math.max(R3.shake,0.9);boomLight(x,y,0xffb040,3,560,0.8)}}
+  if(e.k==='boom'||e.k==='land')newHeroFx(e,null);
+  if(e.k==='boom'){
+    if(d==='requiem'){smoke(x,y,26,[0.32,0.42,0.32],34,30);for(let s=0;s<8;s++){const a=Math.random()*TAU,rr=Math.random()*e.r;emit(x+Math.cos(a)*rr,y+Math.sin(a)*rr,30,{size:24,col:[0.6,1,0.6],life:0.35,max:0.35,drag:1})}waves(x,y,e.r,[0.55,0.9,0.55],1)}
+    if(d==='elmuerto'){smoke(x,y,22,[0.5,0.8,0.65],30,25);for(let s=0;s<20;s++){const a=Math.random()*TAU,rr=Math.random()*e.r;emit(x+Math.cos(a)*rr,y+Math.sin(a)*rr,6,{vz:60,size:8,col:[0.85,1,0.5],life:1.2,max:1.2,drag:0.98})}}
+    if(d==='lunara'){if(e.big){R3.flash=Math.max(R3.flash,0.2);for(let s=0;s<10;s++)R3.timers.push({t:s*0.06,fn:()=>{const a=Math.random()*TAU,rr=Math.random()*e.r*0.8,px=x+Math.cos(a)*rr,py=y+Math.sin(a)*rr;strip([{x:px,y:420,z:py-80},{x:px,y:4,z:py}],{mode:'up',w:12,col:[0.75,0.85,1],life:0.25,max:0.25});sparks(px,py,10,8,[0.8,0.88,1],160);decal(px,py,40,0x0a1020,1.6)}});waves(x,y,e.r,[0.7,0.8,1],3);boomLight(x,y,0x9fb8ff,3.2,700,1);R3.shake=Math.max(R3.shake,0.6)}
+      else{column(x,y,[0.8,0.88,1],260,0.6);waves(x,y,e.r,[0.75,0.85,1],2);starGlyph(x,y,e.r);boomLight(x,y,0xbcd0ff,2.2,420,0.5)}}
+    if(d==='grimclaus'){fire(x,y,24,e.r*0.6);sparks(x,y,20,26,[1,0.8,0.3],260);for(let s=0;s<24;s++){const a=Math.random()*TAU,v=100+Math.random()*220;emit(x,y,20,{vx:Math.cos(a)*v,vy:Math.sin(a)*v,vz:200+Math.random()*200,grav:500,size:5,col:[[1,0.2,0.2],[0.2,0.8,0.3],[1,0.85,0.3]][s%3],life:1.1,max:1.1})}smoke(x,y,10,[0.2,0.18,0.18],30,50);decal(x,y,80,0x100806,2.5);boomLight(x,y,0xff8a30,3,420,0.4);R3.shake=Math.max(R3.shake,0.45)}}
+}
+function lavaCracksCol(x,y,r,col){for(let i=0;i<9;i++){const a=i*TAU/9+Math.random()*0.3;const pts=[{x,y:1.5,z:y}];let px=x,py=y;for(let k=0;k<6;k++){px+=Math.cos(a+(Math.random()-.5)*0.6)*r/6;py+=Math.sin(a+(Math.random()-.5)*0.6)*r/6;pts.push({x:px,y:1.5,z:py})}strip(pts,{mode:'flat',w:8,col,life:1.4,max:1.4})}}
+function starGlyph(x,y,r){const pts=[];for(let k=0;k<=5;k++){const a=-Math.PI/2+k*TAU*2/5;pts.push({x:x+Math.cos(a)*r*0.9,y:hAt(x,y)+3,z:y+Math.sin(a)*r*0.9})}strip(pts,{mode:'flat',w:7,col:[0.8,0.88,1],life:0.9,max:0.9})}
+function doorFx(x,y){const z0=hAt(x,y);for(let k=0;k<2;k++)R3.timers.push({t:k*0.1,fn:()=>{const pts=[{x:x-24,y:z0,z:y},{x:x-24,y:z0+70,z:y},{x:x+24,y:z0+70,z:y},{x:x+24,y:z0,z:y}];strip(pts,{mode:'right',w:6,col:[0.4,1,0.88],life:0.6,max:0.6})}});
+  for(let s=0;s<30;s++)emit(x+(Math.random()-.5)*44,y+(Math.random()-.5)*8,Math.random()*70,{vx:(Math.random()-.5)*60,vy:-60-Math.random()*60,size:9,col:[0.45,1,0.9],life:0.8,max:0.8,drag:0.95});boomLight(x,y,0x5affe0,2.4,360,0.6)}
 const annQ=[];let annBusy=false,annAC=null;
 function annSound(big){try{annAC=annAC||new (window.AudioContext||window.webkitAudioContext)();const a=annAC,t=a.currentTime,o=a.createOscillator(),o2=a.createOscillator(),g=a.createGain();
   o.type='sawtooth';o2.type='square';o.frequency.setValueAtTime(big?110:146,t);o.frequency.exponentialRampToValueAtTime(big?55:73,t+0.9);o2.frequency.setValueAtTime(big?220:293,t);o2.frequency.exponentialRampToValueAtTime(110,t+0.7);
@@ -2346,7 +2391,7 @@ function showAnn(){if(annBusy||!annQ.length)return;annBusy=true;const e=annQ.shi
   setTimeout(()=>{el.classList.remove('show');setTimeout(()=>{el.hidden=true;annBusy=false;showAnn()},350)},2300)}
 function handleVfx(e){
   if(e.k==='announce'){if(!S.attract){annQ.push(e);if(annQ.length>3)annQ.shift();showAnn()}return}
-  if(e.k==='cast'){const h=heroById(e.id);if(!h)return;const d=h.defId,c=css3(h.def.color);
+  if(e.k==='cast'){const h=heroById(e.id);if(!h)return;const d=h.defId,c=css3(h.def.color);newHeroFx(e,h);
     if(d==='kidlat'){const en=R3.ents.get(h.id);if(en){en.rig.tip.getWorldPosition(V);for(let i=0;i<14;i++){const a=Math.random()*TAU;emit(V.x,V.z,V.y,{vx:Math.cos(a)*120,vy:Math.sin(a)*120,vz:(Math.random()-.3)*160,size:7,col:[0.8,0.9,1],life:0.4,max:0.4})}}}
     if(d==='amihan'&&e.i===1){for(let i=0;i<30;i++){const a=Math.random()*TAU;emit(h.x+Math.cos(a)*30,h.y+Math.sin(a)*30,5,{vx:-Math.sin(a)*160,vy:Math.cos(a)*160,vz:80+Math.random()*80,size:7,col:[0.62,0.9,0.85],life:0.8,max:0.8,drag:0.97})}}
     if(d==='bagwis'){feathers(h.x,h.y,40,12,c);if(e.i===1)R3.spins.push({h,t:0,max:0.55})}
@@ -2722,7 +2767,7 @@ function render3d(now,dt){
       if(u.defId==='bagwis'){const bl=e.rig.blades[P.alt?1:0];bl.getWorldPosition(a);bl.localToWorld(b.set(0,-20,0))}else{e.rig.tip.getWorldPosition(a);b.copy(a);a.y-=10;b.y+=10}
       e.trail.push([{x:a.x,y:a.y,z:a.z},{x:b.x,y:b.y,z:b.z}]);if(e.trail.length>8)e.trail.shift();
       if(e.trail.length>1)strip(e.trail.slice(),{mode:'pair',col:css3(u.def.color),life:0.03,max:0.03,fade:true});
-      if(u.dash&&Math.random()<0.8){emit(u.x,u.y,40+Math.random()*30,{size:22,col:css3(u.def.color),life:0.35,max:0.35,drag:1});if(u.defId==='bagwis')feathers(u.x,u.y,50,1,[0.85,0.6,1]);if(u.defId==='tikbalang')dust(u.x,u.y,1)}
+      if(u.dash&&Math.random()<0.8){emit(u.x,u.y,40+Math.random()*30,{size:22,col:css3(u.def.color),life:0.35,max:0.35,drag:1});if(u.defId==='bagwis')feathers(u.x,u.y,50,1,[0.85,0.6,1]);if(u.defId==='tikbalang')dust(u.x,u.y,1);if(u.defId==='rivet')fire(u.x-Math.cos(u.face)*20,u.y-Math.sin(u.face)*20,2,8);if(u.defId==='keykeeper')emit(u.x,u.y,40,{size:16,col:[0.4,1,0.88],life:0.4,max:0.4,drag:1})}
     }else e.trail=[];
     if(u.defId==='kidlat'&&e.rig.hot&&Math.random()<0.6){e.rig.tip.getWorldPosition(V);const a=Math.random()*TAU;strip([{x:V.x,y:V.y,z:V.z},{x:V.x+Math.cos(a)*14,y:V.y+(Math.random()-.5)*16,z:V.z+Math.sin(a)*14},{x:V.x+Math.cos(a)*26,y:V.y+(Math.random()-.5)*24,z:V.z+Math.sin(a)*26}],{w:2.5,col:[0.85,0.92,1],life:0.06,max:0.06})}
   }
