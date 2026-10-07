@@ -2515,7 +2515,7 @@ function render3d(now,dt){
   let focus=S.player;
   if(S.attract){const alive=S.heroes.filter(h=>!h.dead);focus=alive.reduce((a,b)=>dist(a,{x:1600,y:1600})<dist(b,{x:1600,y:1600})?a:b,alive[0]||S.player)}
   const moving=Math.hypot(input.mx,input.my)>0.15||input.keys.w||input.keys.a||input.keys.s||input.keys.d||input.keys.arrowup||input.keys.arrowdown||input.keys.arrowleft||input.keys.arrowright;
-  if(S.attract||document.documentElement.classList.contains('touch'))cam.free=false;
+  if(S.attract||(document.documentElement.classList.contains('touch')&&!cam.peek))cam.free=false;
   if(cam.free&&cam.mode==='lock'&&(moving||(S.player&&S.player.cmd&&cam.cmdSeen!==S.player.cmd))&&panId===null)cam.free=false;
   if(S.player)cam.cmdSeen=S.player.cmd;
   if(!S.attract&&edgeP.on&&$('menu').hidden&&!S.paused){const m=16;let ex=0,ey=0;if(edgeP.x<m)ex=-1;else if(edgeP.x>vw-m)ex=1;if(edgeP.y<m)ey=-1;else if(edgeP.y>vh-m)ey=1;
@@ -2906,18 +2906,17 @@ function panStart(e){if(!S||S.attract)return;ptrs.set(e.pointerId,{x:e.clientX,y
   panId=e.pointerId;panX=panSX=e.clientX;panY=panSY=e.clientY;panMoved=false;try{e.target.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault()}
 function panMove(e){if(!ptrs.has(e.pointerId))return;ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
   if(ptrs.size===2&&pinch0>0){const[a,b]=[...ptrs.values()];setZoom(pinchZ*Math.hypot(a.x-b.x,a.y-b.y)/pinch0);return}
-  if(e.pointerType==='touch')return;
   if(e.pointerId!==panId)return;if(!panMoved&&Math.hypot(e.clientX-panSX,e.clientY-panSY)<7)return;if(!panMoved){panMoved=true;panX=e.clientX;panY=e.clientY}
   const dx=e.clientX-panX,dy=e.clientY-panY;panX=e.clientX;panY=e.clientY;if(!dx&&!dy)return;
-  const k=worldPerPx();cam.x=clamp(cam.x-dx*k,0,W);cam.y=clamp(cam.y-dy*k*1.25,0,H);cam.free=true}
-function panEnd(e){ptrs.delete(e.pointerId);if(ptrs.size<2)pinch0=0;if(e.pointerId===panId){if(!panMoved&&e.pointerType==='mouse'&&e.type==='pointerup')commandAt(e.clientX,e.clientY);panId=null}}
+  const k=worldPerPx();cam.x=clamp(cam.x-dx*k,0,W);cam.y=clamp(cam.y-dy*k*1.25,0,H);cam.free=true;if(e.pointerType==='touch')cam.peek=true}
+function panEnd(e){ptrs.delete(e.pointerId);if(ptrs.size<2)pinch0=0;if(e.pointerType==='touch'&&!ptrs.size)cam.peek=false;if(e.pointerId===panId){if(!panMoved&&e.pointerType==='mouse'&&e.type==='pointerup')commandAt(e.clientX,e.clientY);panId=null}}
 const glc=$('gl');for(const el of[glc,$('joyzone')])el.addEventListener('contextmenu',e=>e.preventDefault());glc.addEventListener('pointerdown',panStart);glc.addEventListener('pointermove',panMove);glc.addEventListener('pointerup',panEnd);glc.addEventListener('pointercancel',panEnd);
 // minimap: tap or drag to look anywhere
 let mmId=null;
 function mmLook(e){const b=mm.getBoundingClientRect();cam.x=clamp((e.clientX-b.left)/b.width*W,0,W);cam.y=clamp((e.clientY-b.top)/b.height*H,0,H);cam.free=true}
-mm.addEventListener('pointerdown',e=>{if(!S||S.attract||document.documentElement.classList.contains('touch'))return;mmId=e.pointerId;mm.setPointerCapture(e.pointerId);mmLook(e);e.preventDefault()});
+mm.addEventListener('pointerdown',e=>{if(!S||S.attract)return;if(e.pointerType==='touch')cam.peek=true;mmId=e.pointerId;mm.setPointerCapture(e.pointerId);mmLook(e);e.preventDefault()});
 mm.addEventListener('pointermove',e=>{if(e.pointerId===mmId)mmLook(e)});
-mm.addEventListener('pointerup',e=>{if(e.pointerId===mmId)mmId=null});mm.addEventListener('pointercancel',()=>{mmId=null});
+mm.addEventListener('pointerup',e=>{if(e.pointerId===mmId){mmId=null;cam.peek=false}});mm.addEventListener('pointercancel',()=>{mmId=null;cam.peek=false});
 setZoom(camZoom);setMode(cam.mode);
 
 // ---------- loop ----------
