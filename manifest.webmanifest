@@ -2,7 +2,7 @@
   "id": "/",
   "name": "Alamat Arena",
   "short_name": "Alamat Arena",
-  "description": "3D na MOBA na may mga bayani mula sa alamat ng Pilipinas.",
+  "description": "A 3D MOBA with heroes from Philippine legends.",
   "start_url": "/",
   "scope": "/",
   "display": "fullscreen",
