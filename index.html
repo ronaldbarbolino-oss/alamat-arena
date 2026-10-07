@@ -2518,7 +2518,9 @@ function initGL(){
   pools.decal=makePool(()=>new THREE.Mesh(discGeo,new THREE.MeshBasicMaterial({color:0,transparent:true,opacity:0.5,depthWrite:false})));
   pools.shadow=makePool(()=>new THREE.Mesh(quad,shadowMat));
   pools.sel=makePool(()=>new THREE.Mesh(ringGeo,new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.9,depthWrite:false})));
-  pools.range=makePool(()=>new THREE.Mesh(ringGeo,new THREE.MeshBasicMaterial({color:0xff5d5d,transparent:true,opacity:0.5,depthWrite:false})));
+  const rEdge=new THREE.RingGeometry(0.965,1,96);rEdge.rotateX(-Math.PI/2);const rFill=new THREE.CircleGeometry(1,96);rFill.rotateX(-Math.PI/2);
+  pools.range=makePool(()=>{const g=new THREE.Group();const f=new THREE.Mesh(rFill,new THREE.MeshBasicMaterial({color:0xff4a3a,transparent:true,opacity:0.08,depthWrite:false,depthTest:false}));
+    const e=new THREE.Mesh(rEdge,new THREE.MeshBasicMaterial({color:0xff5d4a,transparent:true,opacity:0.8,depthWrite:false,depthTest:false}));f.renderOrder=2;e.renderOrder=3;g.add(f,e);g.userData={f,e};return g});
   pools.orb=makePool(()=>{const m=new THREE.Mesh(sph(1,10,8),basic(0xffffff));m.add(new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true})));m.children[0].scale.set(4,4,1);return m});
   pools.arrow=makePool(()=>{const g=new THREE.Group();const s=new THREE.Mesh(G('arS',()=>{const q=new THREE.CylinderGeometry(0.6,0.6,22,5);q.rotateZ(Math.PI/2);return q}),new THREE.MeshLambertMaterial({color:0xe6d2a8}));g.add(s);
     const h=new THREE.Mesh(G('arH',()=>{const q=new THREE.ConeGeometry(1.8,6,5);q.rotateZ(-Math.PI/2);q.translate(13,0,0);return q}),basic(0xcfe9ff));g.add(h);return g});
@@ -2736,7 +2738,7 @@ function render3d(now,dt){
     if(u.kind==='hero'&&!u.dead){const sel=pools.sel.get();sel.scale.setScalar(34);sel.position.set(u.x,hAt(u.x,u.y)+1,u.y);sel.material.color.setHex(relColHex(u));
       heroAuras(u)}
   }
-  if(P&&!P.dead&&!S.attract)for(const s of S.units)if((s.kind==='tower'||s.kind==='core')&&!s.dead&&s.team!==P.team&&dist(s,P)<s.range+260){const r=pools.range.get();r.scale.setScalar(s.range);r.position.set(s.x,1.2,s.y);r.material.opacity=s.target===P?0.7:0.3}
+  if(P&&!P.dead&&!S.attract)for(const s of S.units)if((s.kind==='tower'||s.kind==='core')&&!s.dead&&s.team!==P.team&&Math.abs(s.x-cam.x)<cam.D*1.6&&Math.abs(s.y-cam.y)<cam.D*1.3){const r=pools.range.get(),hit=s.target===P,near=dist(s,P)<s.range+P.r+220;r.scale.set(s.range+P.r,1,s.range+P.r);r.position.set(s.x,hAt(s.x,s.y)+3,s.y);const pu=0.5+0.5*Math.sin(T*8);r.userData.f.material.opacity=hit?0.16+0.08*pu:near?0.1:0.05;r.userData.e.material.opacity=hit?0.75+0.25*pu:near?0.65:0.3}
   // zones
   for(const z of S.zones){const k=1-z.delay/z.max,c=new THREE.Color(z.color);
     const d=pools.disc.get();d.scale.setScalar(z.r*k);d.position.set(z.x,hAt(z.x,z.y)+1.4,z.y);d.material.color.copy(c);d.material.opacity=0.25;
