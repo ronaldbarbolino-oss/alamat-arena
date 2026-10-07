@@ -11,3 +11,7 @@
 /alamat-arena.apk
   Content-Type: application/vnd.android.package-archive
   Content-Disposition: attachment; filename="Alamat-Arena.apk"
+/
+  Cache-Control: no-cache
+/index.html
+  Cache-Control: no-cache
