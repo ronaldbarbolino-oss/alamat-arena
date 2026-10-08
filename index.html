@@ -24,6 +24,7 @@
   color-scheme:dark;
 }
 [hidden]{display:none!important}
+input,textarea,select{user-select:text;-webkit-user-select:text;touch-action:manipulation}
 html,body{height:100%;margin:0;background:var(--night);color:var(--ink);font-family:var(--body);overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
 #gl{position:fixed;inset:0;width:100%;height:100%;display:block;background:var(--night);touch-action:none;outline:none}
 #game{position:fixed;inset:0;width:100%;height:100%;display:block;pointer-events:none;z-index:1}
@@ -3418,37 +3419,41 @@ const ACCT={ready:false,user:null,fb:null};
 function acctName(){const u=ACCT.user;if(u)return(u.displayName||(u.email||'Player').split('@')[0]).slice(0,16);try{return localStorage.getItem('aa_guest')||'Guest'}catch(_){return'Guest'}}
 function acctOk(){return!FIREBASE_CONFIG||(ACCT.user&&(ACCT.user.emailVerified||ACCT.user.providerData.some(p=>p.providerId==='google.com')))}
 function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>rej(new Error('Could not load '+src));document.head.append(s)})}
-async function acctInit(){if(!FIREBASE_CONFIG||ACCT.fb)return;try{
+let acctP=null;function acctInit(){if(!FIREBASE_CONFIG)return Promise.resolve();return acctP||(acctP=acctInit0().then(()=>{if(!ACCT.fb){acctP=null;throw new Error('Could not connect to the sign-in service. Check your internet and try again.')}}))}
+async function ensureFb(){acctMsg('Connecting...');await acctInit();acctMsg('')}
+async function acctInit0(){if(!FIREBASE_CONFIG||ACCT.fb)return;try{
   await loadScript('https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-app-compat.js');await loadScript('https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-auth-compat.js');
   firebase.initializeApp(FIREBASE_CONFIG);ACCT.fb=firebase.auth();ACCT.fb.useDeviceLanguage();
   ACCT.fb.getRedirectResult().catch(e=>acctMsg(acctErr(e),true));
   ACCT.fb.onAuthStateChanged(u=>{ACCT.user=u;ACCT.ready=true;acctRender()})}catch(e){acctMsg(e.message,true)}}
 function acctErr(e){const c=(e&&e.code)||'';return({'auth/email-already-in-use':'That email already has an account. Sign in instead.','auth/invalid-email':'That email address is not valid.','auth/weak-password':'Use a password with at least 6 characters.',
   'auth/invalid-credential':'Wrong email or password.','auth/wrong-password':'Wrong email or password.','auth/user-not-found':'No account with that email.','auth/popup-closed-by-user':'Sign-in window was closed.',
-  'auth/credential-already-in-use':'That Google account is already linked to another player.','auth/unauthorized-domain':'This website is not yet allowed in Firebase (add it under Authentication > Settings > Authorized domains).'})[c]||(e&&e.message)||String(e)}
+  'auth/credential-already-in-use':'That Google account is already linked to another player.','auth/operation-not-allowed':'This sign-in method is not turned on yet in Firebase (Authentication > Sign-in method).','auth/network-request-failed':'No internet connection to the sign-in service. Try again.','auth/too-many-requests':'Too many tries. Wait a minute and try again.','auth/missing-password':'Type a password.','auth/missing-email':'Type your email.','auth/unauthorized-domain':'This website is not yet allowed in Firebase (add it under Authentication > Settings > Authorized domains).'})[c]||((e&&e.message)||String(e))+(c?' ('+c+')':'')}
 function acctMsg(t,bad){const el=$('acctmsg');el.textContent=t||'';el.style.color=bad?'var(--foe)':'var(--muted)'}
 function acctRender(){const u=ACCT.user,b=$('acctbtn');b.textContent=u?('👤 '+acctName()+(acctOk()?'':' (verify)')):'Sign in';
   $('acctout').hidden=!!u;$('acctin').hidden=!u;
   if(u){$('acctwho').textContent=acctName();$('acctmail').textContent=u.email||'';const g=u.providerData.some(p=>p.providerId==='google.com'),pw=u.providerData.some(p=>p.providerId==='password');
     $('acctverify').hidden=acctOk();$('acctlink').hidden=g;$('acctstate').textContent=(g?'Google account linked. ':'')+(pw?(u.emailVerified?'Email verified.':'Email not verified yet.'):'')}}
 function acctOpen(){$('acct').hidden=false;acctMsg('');if(!FIREBASE_CONFIG){$('acctout').hidden=true;$('acctin').hidden=true;$('acctoff').hidden=false;
-    try{$('acctguest').value=localStorage.getItem('aa_guest')||''}catch(_){}return}$('acctoff').hidden=true;acctInit();acctRender()}
+    try{$('acctguest').value=localStorage.getItem('aa_guest')||''}catch(_){}return}$('acctoff').hidden=true;acctInit().catch(e=>acctMsg(e.message,true));acctRender()}
 const gProvider=()=>new firebase.auth.GoogleAuthProvider();
 const useRedirect=()=>document.documentElement.classList.contains('touch')||matchMedia('(display-mode: standalone),(display-mode: fullscreen)').matches;
-async function acctGoogle(){acctMsg('Opening Google sign-in...');try{await ACCT.fb.signInWithPopup(gProvider());acctMsg('Signed in with Google!')}catch(e){if(/popup-blocked|operation-not-supported|web-storage/.test(e.code||'')){try{await ACCT.fb.signInWithRedirect(gProvider())}catch(e2){acctMsg(acctErr(e2),true)}}else acctMsg(acctErr(e),true)}}
-async function acctLinkGoogle(){try{try{await ACCT.user.linkWithPopup(gProvider())}catch(e){if(/popup-blocked|operation-not-supported/.test(e.code||''))await ACCT.user.linkWithRedirect(gProvider());else throw e}await ACCT.user.reload();ACCT.user=ACCT.fb.currentUser;acctRender();acctMsg('Google account linked!')}catch(e){acctMsg(acctErr(e),true)}}
-async function acctCreate(){const em=$('acctemail').value.trim(),pw=$('acctpass').value,nm=$('acctname').value.trim();if(!nm){acctMsg('Choose a player name.',true);return}
+async function acctGoogle(){try{await ensureFb()}catch(e){acctMsg(e.message,true);return}acctMsg('Opening Google sign-in...');try{await ACCT.fb.signInWithPopup(gProvider());acctMsg('Signed in with Google!')}catch(e){if(/popup-blocked|operation-not-supported|web-storage/.test(e.code||'')){try{await ACCT.fb.signInWithRedirect(gProvider())}catch(e2){acctMsg(acctErr(e2),true)}}else acctMsg(acctErr(e),true)}}
+async function acctLinkGoogle(){try{await ensureFb()}catch(e){acctMsg(e.message,true);return}try{try{await ACCT.user.linkWithPopup(gProvider())}catch(e){if(/popup-blocked|operation-not-supported/.test(e.code||''))await ACCT.user.linkWithRedirect(gProvider());else throw e}await ACCT.user.reload();ACCT.user=ACCT.fb.currentUser;acctRender();acctMsg('Google account linked!')}catch(e){acctMsg(acctErr(e),true)}}
+async function acctCreate(){try{await ensureFb()}catch(e){acctMsg(e.message,true);return}const em=$('acctemail').value.trim(),pw=$('acctpass').value,nm=$('acctname').value.trim();if(!nm){acctMsg('Choose a player name.',true);return}
   try{acctMsg('Creating account...');const c=await ACCT.fb.createUserWithEmailAndPassword(em,pw);await c.user.updateProfile({displayName:nm.slice(0,16)});await c.user.sendEmailVerification();ACCT.user=ACCT.fb.currentUser;acctRender();
     acctMsg('Account created! We sent a verification link to '+em+'. Open it in your Gmail, then press "I verified".')}catch(e){acctMsg(acctErr(e),true)}}
-async function acctSignIn(){try{acctMsg('Signing in...');await ACCT.fb.signInWithEmailAndPassword($('acctemail').value.trim(),$('acctpass').value);acctMsg(acctOk()?'Welcome back!':'Signed in. Please verify your email to play online.')}catch(e){acctMsg(acctErr(e),true)}}
-async function acctCheck(){try{await ACCT.user.reload();ACCT.user=ACCT.fb.currentUser;acctRender();acctMsg(acctOk()?'Email verified! You can now play online.':'Not verified yet. Open the link in your email first.',!acctOk())}catch(e){acctMsg(acctErr(e),true)}}
-async function acctResend(){try{await ACCT.user.sendEmailVerification();acctMsg('Verification email sent again.')}catch(e){acctMsg(acctErr(e),true)}}
-async function acctReset(){const em=$('acctemail').value.trim();if(!em){acctMsg('Type your email first.',true);return}try{await ACCT.fb.sendPasswordResetEmail(em);acctMsg('Password reset email sent.')}catch(e){acctMsg(acctErr(e),true)}}
+async function acctSignIn(){try{await ensureFb()}catch(e){acctMsg(e.message,true);return}try{acctMsg('Signing in...');await ACCT.fb.signInWithEmailAndPassword($('acctemail').value.trim(),$('acctpass').value);acctMsg(acctOk()?'Welcome back!':'Signed in. Please verify your email to play online.')}catch(e){acctMsg(acctErr(e),true)}}
+async function acctCheck(){try{await ensureFb()}catch(e){acctMsg(e.message,true);return}try{await ACCT.user.reload();ACCT.user=ACCT.fb.currentUser;acctRender();acctMsg(acctOk()?'Email verified! You can now play online.':'Not verified yet. Open the link in your email first.',!acctOk())}catch(e){acctMsg(acctErr(e),true)}}
+async function acctResend(){try{await ensureFb()}catch(e){acctMsg(e.message,true);return}try{await ACCT.user.sendEmailVerification();acctMsg('Verification email sent again.')}catch(e){acctMsg(acctErr(e),true)}}
+async function acctReset(){try{await ensureFb()}catch(e){acctMsg(e.message,true);return}const em=$('acctemail').value.trim();if(!em){acctMsg('Type your email first.',true);return}try{await ACCT.fb.sendPasswordResetEmail(em);acctMsg('Password reset email sent.')}catch(e){acctMsg(acctErr(e),true)}}
+$('acct').addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter'){e.preventDefault();if(document.activeElement&&document.activeElement.id==='acctguest')$('acctguestsave').click();else if(ACCT.fb&&!ACCT.user)acctSignIn()}});
+$('mp').addEventListener('keydown',e=>e.stopPropagation());
 $('acctbtn').addEventListener('click',acctOpen);$('acctx').addEventListener('click',()=>$('acct').hidden=true);
 $('acctg').addEventListener('click',acctGoogle);$('acctcreate').addEventListener('click',acctCreate);$('acctsignin').addEventListener('click',acctSignIn);$('acctforgot').addEventListener('click',acctReset);
 $('acctcheck').addEventListener('click',acctCheck);$('acctresend').addEventListener('click',acctResend);$('acctlink').addEventListener('click',acctLinkGoogle);$('acctlogout').addEventListener('click',()=>ACCT.fb.signOut());
 $('acctguestsave').addEventListener('click',()=>{try{localStorage.setItem('aa_guest',$('acctguest').value.trim().slice(0,16))}catch(_){}$('acctbtn').textContent='👤 '+acctName();$('acct').hidden=true});
-if(FIREBASE_CONFIG)acctInit();else $('acctbtn').textContent=acctName()==='Guest'?'Sign in':'👤 '+acctName();
+if(FIREBASE_CONFIG)acctInit().catch(()=>{});else $('acctbtn').textContent=acctName()==='Guest'?'Sign in':'👤 '+acctName();
 
 $('mpquick').addEventListener('click',quickMatch);
 // ======================= BUILD MENU (opens only from the BUILD / gold button) =======================
