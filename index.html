@@ -73,7 +73,7 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .act{position:absolute;border-radius:50%;background:var(--panel2);border:2px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;touch-action:none}
 .act .nm{font-size:10px;line-height:1.05;text-align:center;padding:0 4px;color:var(--ink);font-weight:600;position:relative;z-index:1}
 .act .key{position:absolute;bottom:3px;font-size:9px;color:var(--muted);z-index:1}
-.act .cd{position:absolute;inset:0;background:conic-gradient(rgba(5,9,7,.78) calc(var(--cd,0)*360deg),transparent 0);z-index:2;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:18px;color:#fff}
+.act.oncd .nm{opacity:.18}.act .cd{position:absolute;inset:0;background:conic-gradient(rgba(5,9,7,.78) calc(var(--cd,0)*360deg),transparent 0);z-index:2;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:18px;color:#fff}
 .act.active{border-color:var(--gold)}
 .act{transition:transform .08s ease-out,filter .08s,box-shadow .15s}
 .act.pressed{transform:scale(.86);filter:brightness(1.35);box-shadow:0 0 0 4px rgba(242,193,78,.35),0 0 22px rgba(242,193,78,.55)}
@@ -246,12 +246,20 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .mprow select{font:inherit;font-size:12px;padding:4px;border-radius:6px;background:#0b130f;color:var(--ink);border:1px solid var(--line)}
 @media (max-height:560px){.mpcard{padding:10px}#mplist{gap:6px}.mprow{padding:4px}}
 /* ===== ML-style phone controls ===== */
+.touch #top{background:rgba(8,13,10,.78);border-radius:12px 12px 0 0;border-bottom:none;min-width:212px;justify-content:space-between;box-sizing:border-box}
+.touch #tr{background:rgba(8,13,10,.78);border:1px solid var(--line);border-top:none;border-radius:0 0 12px 12px;padding:4px 6px 6px;gap:5px;min-width:212px;box-sizing:border-box;justify-content:space-between}
+.touch #tr .chip{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.08)}
+.touch #util{background:rgba(8,13,10,.72);border:1px solid var(--line);border-radius:40px;padding:5px 8px 5px 5px}
+.touch #util #rc{background:radial-gradient(circle at 50% 35%,#24476e,#0f2034);border-color:rgba(120,180,255,.55)}
+.touch #util #rc .nm{font-size:11px}
+.touch #util #qbuy{border-radius:30px;background:transparent;border-color:rgba(242,193,78,.45);padding:4px 12px 4px 4px;max-width:200px}
+.touch #util #qbuy .ic{border-radius:50%}
 #util{display:none}
 .touch #util{display:flex;align-items:center;gap:10px;left:50%;bottom:calc(10px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) scale(var(--hs,1));transform-origin:bottom center}
 .touch #util #rc{position:relative;right:auto;bottom:auto;width:52px;height:52px;flex:0 0 auto}
 .touch #util #qbuyw{position:static;transform:none;display:block}.touch #util #qbuyw[hidden]{display:none}
 .touch #top{left:auto;right:calc(8px + env(safe-area-inset-right,0px));transform:scale(var(--hs,1));transform-origin:top right;padding:3px 12px}
-.touch #tr{top:calc(8px + 46px*var(--hs,1) + env(safe-area-inset-top,0px))}
+.touch #tr{top:calc(8px + 41px*var(--hs,1) + env(safe-area-inset-top,0px))}
 .touch #tr .chip{padding:5px 9px;font-size:12px}
 .touch #feed{left:50%;top:calc(10px + env(safe-area-inset-top,0px))}
 .touch #pad{width:220px;height:210px;right:calc(12px + env(safe-area-inset-right,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px))}
@@ -2743,9 +2751,9 @@ function render3d(now,dt){
   const placeCam=()=>{camera.position.set(cam.x+(Math.random()-.5)*sk,D*pitch+(Math.random()-.5)*sk,cam.y+D*0.6+(Math.random()-.5)*sk);camera.lookAt(cam.x,0,cam.y-30);camera.updateMatrixWorld()};
   placeCam();
   // keep the whole screen on the map: slide the camera just enough that no edge shows empty space
-  if(false&&!S.attract&&!cam.peek){let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;for(const[cx,cy]of[[0,0],[vw,0],[0,vh],[vw,vh],[vw/2,0],[vw/2,vh],[0,vh/2],[vw,vh/2]]){const g=groundAt(cx,cy);if(!g)continue;x0=Math.min(x0,g.x);x1=Math.max(x1,g.x);y0=Math.min(y0,g.y);y1=Math.max(y1,g.y)}
+  if(!S.attract&&!cam.peek&&document.documentElement.classList.contains('touch')){let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;for(const[cx,cy]of[[0,0],[vw,0],[0,vh],[vw,vh],[vw/2,0],[vw/2,vh],[0,vh/2],[vw,vh/2]]){const g=groundAt(cx,cy);if(!g)continue;x0=Math.min(x0,g.x);x1=Math.max(x1,g.x);y0=Math.min(y0,g.y);y1=Math.max(y1,g.y)}
     if(x1>x0){let dx=0,dy=0;const M=10;if(x1-x0>W){dx=W/2-(x0+x1)/2}else if(x0<-M)dx=-M-x0;else if(x1>W+M)dx=W+M-x1;if(y1-y0>H){dy=H/2-(y0+y1)/2}else if(y0<-M)dy=-M-y0;else if(y1>H+M)dy=H+M-y1;
-      const F=S.player;if(F&&!F.dead){const hx=(x1-x0)*0.15,hy=(y1-y0)*0.13;dx=clamp(cam.x+dx,F.x-hx,F.x+hx)-cam.x;dy=clamp(cam.y+dy,F.y-hy,F.y+hy)-cam.y}
+      const F=S.player;if(F&&!F.dead){const gl=groundAt(0,vh*0.75),gr=groundAt(vw,vh*0.75),bw=gl&&gr?Math.abs(gr.x-gl.x):(x1-x0)*0.6,hx=bw*0.28,hy=(y1-y0)*0.18;dx=clamp(cam.x+dx,F.x-hx,F.x+hx)-cam.x;dy=clamp(cam.y+dy,F.y-hy,F.y+hy)-cam.y}
       if(dx||dy){cam.x+=dx;cam.y+=dy;placeCam()}}}
   scene.fog.near=D*1.6;scene.fog.far=D*3.8;windU.value=now;
   {const sn=R3.sun;sn.target.position.set(cam.x,0,cam.y-60);sn.position.set(cam.x-0.55*1400,1400,cam.y-60+0.4*1400);
@@ -2998,6 +3006,7 @@ function hud(dt){
   $('mxp').style.width=(p.lvl>=15?100:p.xp/needXP(p.lvl)*100)+'%';
   $('mhp').textContent=Math.ceil(p.hp)+' / '+Math.round(p.maxHp);$('me').classList.toggle('low',!p.dead&&p.hp<=Math.max(250,p.maxHp*0.15));$('mmp').textContent=Math.floor(p.mana)+' / '+Math.round(p.maxMana);$('mmana').style.width=(p.mana/p.maxMana*100)+'%';$('mhero').textContent=p.def.name;
   skBtns.forEach((b,i)=>{const s=p.def.skills[i],cdEl=b.querySelector('.cd'),mc=manaCost(p,i);b.classList.toggle('nomana',p.mana<mc);let me=b.querySelector('.mc');if(!me){me=document.createElement('span');me.className='mc';b.append(me)}if(me.textContent!==String(mc))me.textContent=mc;
+    b.classList.toggle('oncd',p.cds[i]>0||(s.ult&&p.lvl<4));
     if(s.ult&&p.lvl<4){cdEl.style.setProperty('--cd',1);cdEl.textContent='Lv4'}
     else if(p.cds[i]>0){cdEl.style.setProperty('--cd',p.cds[i]/(s.cd*(1-p.cdr)));cdEl.textContent=Math.ceil(p.cds[i])}
     else{cdEl.style.setProperty('--cd',0);cdEl.textContent=''}});
