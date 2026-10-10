@@ -3105,7 +3105,7 @@ function shipMesh(){const g=new THREE.Group(),m=new THREE.MeshBasicMaterial({col
   const hull=new THREE.Mesh(new THREE.BoxGeometry(150,34,52),m);hull.position.y=20;g.add(hull);const bow=new THREE.Mesh(new THREE.ConeGeometry(26,50,4),m);bow.rotation.z=-Math.PI/2;bow.position.set(98,24,0);g.add(bow);
   for(let i=0;i<2;i++){const mast=new THREE.Mesh(new THREE.CylinderGeometry(2.5,2.5,110,6),m);mast.position.set(-30+i*60,90,0);g.add(mast);const sail=new THREE.Mesh(new THREE.PlaneGeometry(10,70,1,1),m);sail.scale.x=1;sail.rotation.y=Math.PI/2;sail.position.set(-30+i*60,95,0);sail.scale.set(7,1,1);g.add(sail)}
   return g}
-R3.ships=[];
+R3.ships=[];R3.puffs=[];
 function heroFx4(e){
   if(e.k==='ship'){const g=shipMesh();scene.add(g);R3.ships.push({g,x1:e.x1,y1:e.y1,x2:e.x2,y2:e.y2,t:0,dur:e.dur});return}
   if(e.k==='cleave'){const z0=hAt(e.x,e.y)+20,pts=[];for(let i=-6;i<=6;i++){const a=e.a+i/6*0.9,rr=e.r*0.85;pts.push({x:e.x+Math.cos(a)*rr-Math.cos(e.a)*rr*0.4,y:z0+Math.cos(i/6*1.5)*8,z:e.y+Math.sin(a)*rr-Math.sin(e.a)*rr*0.4})}
@@ -3118,7 +3118,9 @@ function heroFx4(e){
 }
 function drawShips(dt){for(const s of R3.ships){s.t+=dt;const k=Math.min(1,s.t/s.dur),x=s.x1+(s.x2-s.x1)*k,y=s.y1+(s.y2-s.y1)*k;s.g.position.set(x,hAt(x,y)+4+Math.sin(s.t*6)*3,y);s.g.rotation.y=-Math.atan2(s.y2-s.y1,s.x2-s.x1);s.g.rotation.x=Math.sin(s.t*4)*0.05;
     if(Math.random()<0.8)splash(x,y,2,0.5);if(k>=1){scene.remove(s.g);s.done=true;splash(s.x2,s.y2,40,1.4);rocksBurst(s.x2,s.y2,16,0x5a3a22,1.1);waves(s.x2,s.y2,240,[0.55,0.85,1],3);boomLight(s.x2,s.y2,0x4ac8ff,3,600,0.8);R3.shake=Math.max(R3.shake,0.9)}}
-  if(R3.ships.length)R3.ships=R3.ships.filter(s=>!s.done)}
+  if(R3.ships.length)R3.ships=R3.ships.filter(s=>!s.done);
+  for(const q of R3.puffs){q.t+=dt;const k=q.t/0.7,z=hAt(q.x,q.y)+28;for(let i=0;i<7;i++){const cl=pools.cloud.get(),a=i/7*TAU,rr=10+k*34,sc=14+k*18;cl.material.color.setHex(0x2a2228);cl.material.opacity=Math.max(0,0.85*(1-k));cl.position.set(q.x+Math.cos(a)*rr,z+k*16+(i%2)*6,q.y+Math.sin(a)*rr);cl.scale.set(sc,sc*0.8,sc)}}
+  if(R3.puffs.length)R3.puffs=R3.puffs.filter(q=>q.t<0.7)}
 // ---------- death ad (adults only, at most once a minute) ----------
 const AD={lastT:-999,shown:false,dead:false};
 function adAge(){try{return localStorage.getItem('aa_adult')}catch(_){return null}}
@@ -3168,6 +3170,7 @@ function handleVfx(e){
     if(e.d==='bagwis'){feathers(e.x,e.y,20,e.big?40:16,[0.9,0.65,1]);if(e.big){decal(e.x,e.y,60,0x1a1020,2);rocksBurst(e.x,e.y,10,0x4a3a50,0.8);R3.flash=Math.max(R3.flash,0.1);R3.shake=Math.max(R3.shake,0.45);R3.flashL.push({x:e.x,y:e.y,c:0xe7a6ff,i:2.2,d:420,life:0.5,max:0.5})}}
     if(e.d==='tikbalang'){dust(e.x,e.y,16);rocksBurst(e.x,e.y,6,0x6b5a48,0.6)}
   }
+  if(e.k==='hit'&&e.d==='sitan'&&!e.big&&Math.hypot(e.x-cam.x,e.y-cam.y)<1300)R3.puffs.push({x:e.x,y:e.y,t:0});
   if(e.k==='hit'){const near=Math.hypot(e.x-cam.x,e.y-cam.y)<1300;if(!near)return;const c=css3(e.c),n=e.big?9:4;
     for(let i=0;i<n;i++){const a=Math.random()*TAU,v=90+Math.random()*200;emit(e.x,e.y,30+Math.random()*15,{vx:Math.cos(a)*v,vy:Math.sin(a)*v,vz:40+Math.random()*120,grav:500,size:e.big?7:5,col:e.big?c:[1,0.92,0.7],life:0.3,max:0.3})}
     if(e.big)R3.flashL.push({x:e.x,y:e.y,c:e.c,i:1.2,d:260,life:0.18,max:0.18});
@@ -3476,7 +3479,7 @@ function render3d(now,dt){
   for(const z of S.zones){const k=1-z.delay/z.max,c=new THREE.Color(z.color);
     const d=pools.disc.get();d.scale.setScalar(z.r*k);d.position.set(z.x,hAt(z.x,z.y)+1.4,z.y);d.material.color.copy(c);d.material.opacity=0.25;
     const r=pools.ring.get();r.scale.setScalar(z.r);r.position.set(z.x,hAt(z.x,z.y)+1.5,z.y);r.material.color.copy(c);r.material.opacity=0.8;
-    if(z.big&&z.src.defId==='kidlat'){for(let i=0;i<7;i++){const cl=pools.cloud.get(),a=i/7*TAU+now*0.3,rr=z.r*0.55*(i%2?1:0.6);cl.position.set(z.x+Math.cos(a)*rr,300+Math.sin(now*2+i)*8,z.y+Math.sin(a)*rr);cl.scale.set(70,34,60);cl.material.opacity=0.55+0.3*k}
+    if(z.big&&z.src.defId==='kidlat'){for(let i=0;i<7;i++){const cl=pools.cloud.get(),a=i/7*TAU+now*0.3,rr=z.r*0.55*(i%2?1:0.6);cl.position.set(z.x+Math.cos(a)*rr,300+Math.sin(now*2+i)*8,z.y+Math.sin(a)*rr);cl.scale.set(70,34,60);cl.material.color.setHex(0x2a2f3c);cl.material.opacity=0.55+0.3*k}
       if(Math.random()<0.15)lightning(z.x+(Math.random()-.5)*z.r,z.y+(Math.random()-.5)*z.r,false)}
     if(z.src.defId==='grimclaus'){const g=pools.gift.get(),sx=z.sx??(z.sx=z.src.x),sy=z.sy??(z.sy=z.src.y),q=k;g.position.set(sx+(z.x-sx)*q,40+Math.sin(q*Math.PI)*120+hAt(z.x,z.y)*q,sy+(z.y-sy)*q);g.rotation.set(q*7,q*5,q*3);g.scale.setScalar(2.2);
       if(Math.random()<0.5)emit(g.position.x,g.position.z,g.position.y,{size:8,col:[1,0.85,0.4],life:0.4,max:0.4,drag:0.9})}
@@ -3496,7 +3499,10 @@ function render3d(now,dt){
         strip([{x:p.x-Math.cos(ga)*70,y:h,z:p.y-Math.sin(ga)*70},{x:p.x,y:h,z:p.y}],{mode:'up',w:2.2,col:[1,0.85,0.5],life:0.05,max:0.05});continue}
       if(sd==='lunara'){const c=pools.crescent.get();c.position.set(p.x,h+hAt(p.x,p.y),p.y);c.rotation.set(-Math.PI/2*0.6,-ga+Math.PI/2,T*10);c.scale.setScalar(0.9);
         if(Math.random()<0.8)emit(p.x,p.y,h,{size:9,col:[0.65,0.75,1],life:0.4,max:0.4,drag:0.9});continue}
-      if(sd==='sitan'){const o=pools.orb.get();o.position.set(p.x,h+hAt(p.x,p.y),p.y);o.scale.setScalar(5);o.material.color.setHex(0xff4030);o.children[0].material.color.setHex(0xff1a1a);if(Math.random()<0.8)emit(p.x,p.y,h,{size:12,col:[0.6,0.05,0.05],life:0.4,max:0.4,soft:1,drag:0.9});continue}
+      if(sd==='sitan'){const z=h+hAt(p.x,p.y),dx=Math.cos(ga),dy=Math.sin(ga);
+        for(let i=0;i<7;i++){const cl=pools.cloud.get(),back=i*9,sc=(i<3?18:16-i*1.4)*(1+0.15*Math.sin(T*12+i)),a=T*7+i*2.1,j=i<3?5:2;cl.material.color.setHex(i<3?0x241c22:0x3a3238);cl.material.opacity=i<3?0.92:0.75-i*0.07;
+          cl.position.set(p.x-dx*back+Math.cos(a)*j,z+Math.sin(a*1.3)*j,p.y-dy*back+Math.sin(a)*j);cl.scale.set(sc,sc*0.85,sc)}
+        const o=pools.orb.get();o.position.set(p.x,z,p.y);o.scale.setScalar(2.4);o.material.color.setHex(0xff5030);o.children[0].material.color.setHex(0xff2a10);continue}
       if(sd==='requiem'){const o=pools.orb.get();o.position.set(p.x,h+hAt(p.x,p.y),p.y);o.scale.setScalar(4);o.material.color.setHex(0xd8ffb8);o.children[0].material.color.setHex(0x8aff9a);
         for(let i=0;i<2;i++)emit(p.x+(Math.random()-.5)*8,p.y+(Math.random()-.5)*8,h,{vz:20,size:16+Math.random()*10,col:[0.45,0.6,0.42],life:0.7,max:0.7,soft:1,drag:0.95});continue}
       if(p.arrow){const a=pools.arrow.get();a.position.set(p.x,h+hAt(p.x,p.y),p.y);a.rotation.set(0,-(p.ang||0),0)}
