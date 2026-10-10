@@ -3642,7 +3642,6 @@ function frame(nowMs){const dt=Math.min(0.25,(nowMs-last)/1000);last=nowMs;const
   overlay();hud(dt);if(!$('menu').hidden)drawPortraits(now,dt);requestAnimationFrame(frame)}
 requestAnimationFrame(frame);
 })();
-</script>})();
 </script>
 
 <script>if("serviceWorker" in navigator){let rl=false;navigator.serviceWorker.addEventListener("controllerchange",()=>{if(rl)return;rl=true;location.reload()});addEventListener("load",()=>navigator.serviceWorker.register("/sw.js",{updateViaCache:"none"}).then(r=>{r.update();document.addEventListener("visibilitychange",()=>{if(!document.hidden)r.update()})}).catch(()=>{}))}</script>
