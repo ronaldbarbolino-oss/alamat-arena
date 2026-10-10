@@ -3152,10 +3152,10 @@ function drawShips(dt){for(const s of R3.ships){s.t+=dt;const k=Math.min(1,s.t/s
 const AD={lastT:-999,shown:false,dead:false};
 function adAge(){try{const v=localStorage.getItem('aa_adult');if(v==='yes')return'yes';if(v&&v.startsWith('no:')&&Date.now()-(+v.slice(3))<864e5)return'no';return null}catch(_){return null}}
 function adShow(){const a=adAge();if(a==='no')return;const el=$('adpop');el.hidden=false;AD.shown=true;
-  $('adgate').hidden=a==='yes';$('adbody').classList.toggle('locked',a!=='yes');const x=$('adx');x.disabled=true;let w=2;$('adwait').textContent='You can close this in '+w+'s';
-  const iv=setInterval(()=>{w--;if(w<=0){clearInterval(iv);x.disabled=false;$('adwait').textContent=''}else $('adwait').textContent='You can close this in '+w+'s'},1000)}
+  $('adgate').hidden=a==='yes';$('adbody').classList.toggle('locked',a!=='yes');const x=$('adx');x.disabled=true;x.hidden=true;$('adwait').textContent=''}
 function adHide(){$('adpop').hidden=true;AD.shown=false}
 function adTick(p){if(!p||S.attract)return;if(p.dead&&!AD.dead){AD.dead=true;adShow()}
+  if(p.dead&&AD.shown){const t='Respawning in '+Math.max(0,Math.ceil(p.respawnT||0))+'s';if($('adwait').textContent!==t)$('adwait').textContent=t}
   if(!p.dead&&AD.dead){AD.dead=false;if(AD.shown)adHide()}}
 $('adx').addEventListener('click',adHide);
 $('adyes').addEventListener('click',()=>{try{localStorage.setItem('aa_adult','yes')}catch(_){}$('adgate').hidden=true;$('adbody').classList.remove('locked')});
