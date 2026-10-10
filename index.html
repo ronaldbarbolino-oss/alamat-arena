@@ -994,6 +994,7 @@ function cast(h,i,tgt){
   const s=h.def.skills[i];
   if(s.type==='leap'&&!(tgt&&tgt.kind==='hero'&&dist(h,tgt)<=s.range+40))tgt=null;
   if(NEED_T[s.type]&&!(tgt&&!tgt.dead&&tgt.r>0&&!isStruct(tgt)&&canHit(h,tgt)&&dist(h,tgt)<=s.range+tgt.r+40)){tgt=bestEnemy(h,s.range+40);if(!tgt)return false}
+  let razeD=null;if(s.type==='raze'&&tgt){razeD=dist(h,tgt);if(h.isPlayer&&tgt.r!==0){const a=Math.atan2(tgt.y-h.y,tgt.x-h.x),df=Math.abs(((a-h.face)%(Math.PI*2)+Math.PI*3)%(Math.PI*2)-Math.PI);if(df>0.6)razeD=null;tgt=null}}
   let grab=null;if(s.type==='toss'){grab=tossGrab(h,s);if(!grab)return false}
   if(h.mana!==undefined)h.mana-=manaCost(h,i);h.cds[i]=s.cd*(1-h.cdr);h.recallT=0;h.castAt=S.t;h.castIdx=i;h.windT=0;
   S.vfx.push({k:'cast',id:h.id,i,x:h.x,y:h.y});
@@ -1026,7 +1027,7 @@ function cast(h,i,tgt){
       S.zones.push({x:px,y:py,r:s.radius,delay:s.delay,max:s.delay,dmg,team:h.team,src:h,eff:s.effect,color:col,big:true});
       const amt=s.amt+s.amtG*(h.lvl-1);for(const a of S.heroes)if(!a.dead&&a.team===h.team&&dist(a,h)<650){a.shield=Math.max(a.shield||0,amt);a.shieldT=Math.max(a.shieldT||0,4)}
       S.vfx.push({k:'ship',x1:Math.round(h.x-dx*380),y1:Math.round(h.y-dy*380),x2:Math.round(px),y2:Math.round(py),dur:s.delay});break}
-    case'raze':{const ds=s.dists;let d=ds[1];if(tgt){const L=dist(h,tgt);d=ds.reduce((b,v)=>Math.abs(v-L)<Math.abs(b-L)?v:b,ds[0])}
+    case'raze':{const ds=s.dists;let d=ds[1];if(razeD!=null){const L=razeD;d=ds.reduce((b,v)=>Math.abs(v-L)<Math.abs(b-L)?v:b,ds[0])}
       const px=clamp(h.x+dx*d,0,W),py=clamp(h.y+dy*d,0,H);quietHit(h,px,py,s.radius,dmg,null);S.vfx.push({k:'raze',x:Math.round(px),y:Math.round(py),r:s.radius});break}
     case'requiem':h.chan={k:'requiem',t:s.dur,dur:s.dur,s,dmg,acc:0};h.chanK=3;break;
     case'toss':{let tx,ty;if(tgt){const L=Math.min(s.range,dist(h,tgt));tx=h.x+dx*L;ty=h.y+dy*L}else{tx=h.x+dx*s.range*0.8;ty=h.y+dy*s.range*0.8}
@@ -3119,7 +3120,7 @@ function heroFx4(e){
 function drawShips(dt){for(const s of R3.ships){s.t+=dt;const k=Math.min(1,s.t/s.dur),x=s.x1+(s.x2-s.x1)*k,y=s.y1+(s.y2-s.y1)*k;s.g.position.set(x,hAt(x,y)+4+Math.sin(s.t*6)*3,y);s.g.rotation.y=-Math.atan2(s.y2-s.y1,s.x2-s.x1);s.g.rotation.x=Math.sin(s.t*4)*0.05;
     if(Math.random()<0.8)splash(x,y,2,0.5);if(k>=1){scene.remove(s.g);s.done=true;splash(s.x2,s.y2,40,1.4);rocksBurst(s.x2,s.y2,16,0x5a3a22,1.1);waves(s.x2,s.y2,240,[0.55,0.85,1],3);boomLight(s.x2,s.y2,0x4ac8ff,3,600,0.8);R3.shake=Math.max(R3.shake,0.9)}}
   if(R3.ships.length)R3.ships=R3.ships.filter(s=>!s.done);
-  for(const q of R3.puffs){q.t+=dt;const k=q.t/0.7,z=hAt(q.x,q.y)+28;for(let i=0;i<7;i++){const cl=pools.cloud.get(),a=i/7*TAU,rr=10+k*34,sc=14+k*18;cl.material.color.setHex(0x2a2228);cl.material.opacity=Math.max(0,0.85*(1-k));cl.position.set(q.x+Math.cos(a)*rr,z+k*16+(i%2)*6,q.y+Math.sin(a)*rr);cl.scale.set(sc,sc*0.8,sc)}}
+  for(const q of R3.puffs){q.t+=dt;const k=q.t/0.7,z=hAt(q.x,q.y)+28;for(let i=0;i<7;i++){const cl=pools.cloud.get(),a=i/7*TAU,rr=10+k*34,sc=14+k*18;cl.material.color.setHex(0xeeeef2);cl.material.opacity=Math.max(0,0.85*(1-k));cl.position.set(q.x+Math.cos(a)*rr,z+k*16+(i%2)*6,q.y+Math.sin(a)*rr);cl.scale.set(sc,sc*0.8,sc)}}
   if(R3.puffs.length)R3.puffs=R3.puffs.filter(q=>q.t<0.7)}
 // ---------- death ad (adults only, at most once a minute) ----------
 const AD={lastT:-999,shown:false,dead:false};
@@ -3500,7 +3501,7 @@ function render3d(now,dt){
       if(sd==='lunara'){const c=pools.crescent.get();c.position.set(p.x,h+hAt(p.x,p.y),p.y);c.rotation.set(-Math.PI/2*0.6,-ga+Math.PI/2,T*10);c.scale.setScalar(0.9);
         if(Math.random()<0.8)emit(p.x,p.y,h,{size:9,col:[0.65,0.75,1],life:0.4,max:0.4,drag:0.9});continue}
       if(sd==='sitan'){const z=h+hAt(p.x,p.y),dx=Math.cos(ga),dy=Math.sin(ga);
-        for(let i=0;i<7;i++){const cl=pools.cloud.get(),back=i*9,sc=(i<3?18:16-i*1.4)*(1+0.15*Math.sin(T*12+i)),a=T*7+i*2.1,j=i<3?5:2;cl.material.color.setHex(i<3?0x241c22:0x3a3238);cl.material.opacity=i<3?0.92:0.75-i*0.07;
+        for(let i=0;i<7;i++){const cl=pools.cloud.get(),back=i*9,sc=(i<3?18:16-i*1.4)*(1+0.15*Math.sin(T*12+i)),a=T*7+i*2.1,j=i<3?5:2;cl.material.color.setHex(i<3?0xf4f4f6:0xdcdde2);cl.material.opacity=i<3?0.92:0.78-i*0.07;
           cl.position.set(p.x-dx*back+Math.cos(a)*j,z+Math.sin(a*1.3)*j,p.y-dy*back+Math.sin(a)*j);cl.scale.set(sc,sc*0.85,sc)}
         const o=pools.orb.get();o.position.set(p.x,z,p.y);o.scale.setScalar(2.4);o.material.color.setHex(0xff5030);o.children[0].material.color.setHex(0xff2a10);continue}
       if(sd==='requiem'){const o=pools.orb.get();o.position.set(p.x,h+hAt(p.x,p.y),p.y);o.scale.setScalar(4);o.material.color.setHex(0xd8ffb8);o.children[0].material.color.setHex(0x8aff9a);
