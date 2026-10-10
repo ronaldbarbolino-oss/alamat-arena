@@ -126,6 +126,29 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 #qbuy{display:flex;align-items:center;gap:8px;background:var(--panel2);border:1px solid rgba(242,193,78,.5);border-radius:10px;padding:5px 10px 5px 5px;font-size:12px;font-weight:600;max-width:210px;text-align:left}
 #qbuy .t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#qbuy .c{color:var(--gold);font-variant-numeric:tabular-nums}
 #qbuy:disabled{opacity:.55;cursor:default}
+#me{display:none!important}
+#con{display:flex;gap:6px;align-items:stretch;padding:6px;border-radius:7px;background:linear-gradient(180deg,#24211b,#121009);border:2px solid #7a6436;box-shadow:inset 0 0 0 1px #3a311c,0 0 0 1px #000,0 4px 14px rgba(0,0,0,.5);font-family:Georgia,'Times New Roman',serif;color:#e8dcc0;width:max-content;max-width:330px}
+#con .ccol{display:flex;flex-direction:column;align-items:center;gap:1px;width:58px}
+#con .cport{width:56px;height:56px;border:2px solid #8a7240;border-radius:4px;overflow:hidden;background:radial-gradient(circle at 50% 35%,#3a3426,#0c0b08);position:relative;box-shadow:inset 0 0 8px #000;cursor:pointer}
+#con .cport img{width:100%;height:100%;object-fit:cover;object-position:50% 15%;display:block}#con .cport img[src=""]{display:none}
+#cglyph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700}
+#con .chp{font-size:10.5px;color:#7dff6a;font-variant-numeric:tabular-nums;line-height:1.2;text-shadow:0 1px 0 #000}#con .cmp{font-size:10.5px;color:#7fb0ff;font-variant-numeric:tabular-nums;line-height:1.2;text-shadow:0 1px 0 #000}
+#con.low .chp{color:#ff5a4a}
+#con .cmid{display:flex;flex-direction:column;gap:3px;width:136px;padding:3px 6px;background:linear-gradient(180deg,#1a1712,#0b0a07);border:1px solid #4a3d22;border-radius:4px}
+#con .cname{font-size:12.5px;font-weight:700;color:#f6d77a;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 0 #000}
+#con .clvl{position:relative;height:13px;background:#1c0f2a;border:1px solid #5a3a8a;border-radius:2px;overflow:hidden}
+#con .clvl i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(180deg,#b06aff,#6a2ac8);width:0}
+#con .clvl span{position:relative;display:block;text-align:center;font-size:9.5px;line-height:13px;color:#fff;text-shadow:0 1px 1px #000;white-space:nowrap}
+#con .cstats{display:grid;grid-template-columns:auto 1fr;gap:0 5px;font-size:10.5px;font-variant-numeric:tabular-nums;line-height:1.3}
+#con .cstats span{color:#c8b88a}#con .cstats b{font-weight:600;color:#f0ead8}#con .cstats em{font-style:normal;color:#5aff5a;margin-left:2px}
+#con .cstatus{display:flex;gap:2px;flex-wrap:wrap;min-height:14px;font-size:10px}
+#con .cstatus i{font-style:normal;background:#2a2418;border:1px solid #5a4a28;border-radius:3px;padding:0 2px;line-height:13px}
+#con .cinvw{display:flex;flex-direction:column;align-items:center;gap:2px}
+#con .cinvt{font-size:9.5px;color:#f6d77a;letter-spacing:.04em}
+#con .cinv{display:grid;grid-template-columns:repeat(2,28px);grid-auto-rows:28px;gap:3px;padding:3px;background:#0b0a07;border:1px solid #4a3d22;border-radius:4px}
+#con .cinv button{width:28px;height:28px;padding:0;border:1px solid #6b5a33;border-radius:3px;background:linear-gradient(180deg,#1a1712,#0e0c09);overflow:hidden;box-shadow:inset 0 0 4px #000;cursor:pointer}
+#con .cinv button img{width:100%;height:100%;object-fit:cover;display:block}
+.touch #con{max-width:300px;transform:scale(.78);transform-origin:top left}
 #statp{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:11.5px;width:132px;font-variant-numeric:tabular-nums;display:grid;grid-template-columns:1fr auto;gap:1px 8px}
 #statp[hidden]{display:none}
 #statp span{color:var(--muted)}#statp b{font-weight:600;text-align:right}
@@ -361,6 +384,9 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
     <div class="row" style="margin-top:3px"><span id="mhp">0</span><span id="mhero"></span></div>
     <div class="bar mana"><i id="mmana"></i></div><div class="row"><span id="mmp" style="color:#8fb8ff">0</span></div>
   </div>
+  <div id="con"><div class="ccol"><div class="cport" id="cport"><img id="cimg" alt=""><span id="cglyph"></span></div><b class="chp" id="chp">0 / 0</b><b class="cmp" id="cmp">0 / 0</b></div>
+    <div class="cmid"><div class="cname" id="cname"></div><div class="clvl"><i id="cxp"></i><span id="clvt"></span></div><div class="cstats" id="cstats"></div><div class="cstatus" id="cstatus"></div></div>
+    <div class="cinvw"><div class="cinvt">Inventory</div><div class="cinv" id="cinv"></div></div></div>
   <div id="statp" hidden></div>
 </div>
 <div class="hud" id="tr">
@@ -3711,7 +3737,7 @@ function hud(dt){
     const fc=$('fortcd'),fcd=S.fortCd?S.fortCd[p.team]:0,ft=S.fortT?S.fortT[p.team]:0;$('fortbtn').classList.toggle('on',ft>0);
     if(fcd>0){fc.style.setProperty('--cd',fcd/FORT_CD);fc.textContent=ft>0?'ON':Math.ceil(fcd)}else{fc.style.setProperty('--cd',0);fc.textContent=''}}
   const rc=$('rccd');if(p.recallT>0){rc.style.setProperty('--cd',p.recallT/3);rc.textContent=Math.ceil(p.recallT)}else{rc.style.setProperty('--cd',0);rc.textContent=''}
-  adTick(p);tutTick();$('dead').hidden=!p.dead;if(p.dead)$('deadT').textContent=Math.ceil(p.respawnT);
+  adTick(p);tutTick();conTick(p);$('dead').hidden=!p.dead;if(p.dead)$('deadT').textContent=Math.ceil(p.respawnT);
   renderBM();
   if(!$('statp').hidden)renderStats();
   {const nx=nextBuild(p),qb=$('qbuy');if(!nx||p.items.length>=6||p.dead&&false)$('qbuyw').hidden=true;else{$('qbuyw').hidden=false;
@@ -3736,6 +3762,25 @@ function renderShop(force){
     row.append(itemIcon(id),nm,st,btn);list.append(row)}
 }
 function buy(id){const p=S.player;if(!p)return;if(NET.client){if(canBuy(p,id)){netSend({t:'buy',id});p.gold-=ITEMS[id].cost;p.items=p.items.concat([id]);S.vfx.push({k:'lvl',id:p.id})}return}if(!buyItem(p,id))return;ring(p.x,p.y,10,60,'#f2c14e',0.5);S.vfx.push({k:'lvl',id:p.id});if(!$('shop').hidden)renderShop(true)}
+// ---------- Warcraft-style hero console ----------
+const CON={id:null,items:'',st:'',status:''};
+function conPortrait(id){const d=HEROES[id];if(HERO_ART[id])return HERO_ART[id];const e=PORTRAITS.find(x=>x.id===id);if(e&&e.c){try{const c=document.createElement('canvas');c.width=c.height=112;c.getContext('2d').drawImage(e.c.canvas,195-90,40,180,180,0,0,112,112);return c.toDataURL('image/jpeg',0.85)}catch(_){}}return''}
+function conTick(p){const id=p.defId,d=p.def;if(!d)return;
+  if(CON.id!==id){CON.id=id;const src=conPortrait(id);$('cimg').src=src;$('cglyph').textContent=src?'':d.glyph;$('cglyph').style.color=d.color;$('cname').textContent=d.name;CON.items='#';CON.st=''}
+  const hpT=Math.ceil(p.hp)+' / '+Math.round(p.maxHp),mpT=Math.floor(p.mana||0)+' / '+Math.round(p.maxMana||0);if($('chp').textContent!==hpT)$('chp').textContent=hpT;if($('cmp').textContent!==mpT)$('cmp').textContent=mpT;
+  $('con').classList.toggle('low',!p.dead&&p.hp<=Math.max(250,p.maxHp*0.15));
+  const need=typeof needXP==='function'&&p.lvl<15?needXP(p.lvl):0;$('cxp').style.width=(need?Math.min(100,(p.xp||0)/need*100):100)+'%';
+  const lt='Level '+p.lvl+' '+d.role;if($('clvt').textContent!==lt)$('clvt').textContent=lt;
+  const it=(p.items||[]).map(x=>ITEMS[x]).filter(Boolean),sum=k=>it.reduce((a,i)=>a+(i[k]||0),0),L=p.lvl-1;
+  const bonus=sum('atk')+(p.souls||0)*3,base=Math.round(d.atk*(0.8+0.03*Math.min(7,L))+d.atkG*L),arm=Math.round(Math.min(0.5,d.armor+0.006*L)*100),def=sum('def'),mp=sum('mp')+(d.dmgType==='mag'?6*L:0),spd=d.speed+sum('spd'),as=d.aspd*(1+sum('aspd')+0.025*L);
+  const st=[base,bonus,arm,def,mp,spd,as.toFixed(2),p.kills,p.deaths,p.assists].join('|');
+  if(st!==CON.st){CON.st=st;const el=$('cstats');el.innerHTML='';const row=(k,v,b)=>{const a=document.createElement('span');a.textContent=k;const c=document.createElement('b');c.textContent=v;if(b){const e=document.createElement('em');e.textContent='+'+b;c.append(e)}el.append(a,c)};
+    row('⚔ Damage:',base,bonus);row('🛡 Armor:',arm,def);if(mp)row('✨ Magic:',mp);row('👟 Speed:',spd);row('⚡ Atk spd:',as.toFixed(2));row('☠ K/D/A:',p.kills+'/'+p.deaths+'/'+p.assists)}
+  const sts=[];if(p.stunT>0)sts.push('💫 Stun');if(p.slowAmt>0)sts.push('🐌 Slow');if(p.shield>0)sts.push('🛡 '+Math.round(p.shield));if(p.buffT>0)sts.push('🔥 Buff');if(p.critT>0)sts.push('🗡 Crit');if(p.cleaveT>0)sts.push('🌊 Tide');if(p.spinT>0)sts.push('🌪 Spin');if(p.formT>0)sts.push('👹 Form');if(p.souls)sts.push('👻 '+p.souls);
+  const ss=sts.join('·');if(ss!==CON.status){CON.status=ss;const el=$('cstatus');el.textContent='';const lab=document.createElement('span');lab.textContent='Status:';lab.style.color='#c8b88a';el.append(lab);for(const t of sts){const i=document.createElement('i');i.textContent=t;el.append(i)}}
+  const ik=(p.items||[]).join(',');if(ik!==CON.items){CON.items=ik;const inv=$('cinv');inv.textContent='';for(let k=0;k<6;k++){const b=document.createElement('button');const id2=(p.items||[])[k];if(id2){const im=new Image();im.src=itemArt(id2);im.alt=ITEMS[id2].name;b.title=ITEMS[id2].name;b.append(im)}else b.setAttribute('aria-label','Empty slot');b.addEventListener('click',e=>{e.preventDefault();$('buildbtn').click()});inv.append(b)}}
+}
+$('cport').addEventListener('click',()=>$('statbtn').click());
 function renderStats(){const p=S.player,el=$('statp');
   const pd=Math.round((1-(1-p.armor)*120/(120+p.pdef))*100),md=Math.round((1-0.95*120/(120+p.mres))*100);
   const rows=[['HP',Math.ceil(p.hp)+'/'+Math.round(p.maxHp)],['Attack',Math.round(p.atk)],['Magic',Math.round(p.mp)],['P.Defense',Math.round(p.pdef)+' · '+pd+'%'],['M.Defense',Math.round(p.mres)+' · '+md+'%'],
