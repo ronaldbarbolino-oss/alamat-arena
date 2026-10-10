@@ -3124,7 +3124,7 @@ function drawShips(dt){for(const s of R3.ships){s.t+=dt;const k=Math.min(1,s.t/s
   if(R3.puffs.length)R3.puffs=R3.puffs.filter(q=>q.t<0.7)}
 // ---------- death ad (adults only, at most once a minute) ----------
 const AD={lastT:-999,shown:false,dead:false};
-function adAge(){try{return localStorage.getItem('aa_adult')}catch(_){return null}}
+function adAge(){try{const v=localStorage.getItem('aa_adult');if(v==='yes')return'yes';if(v&&v.startsWith('no:')&&Date.now()-(+v.slice(3))<864e5)return'no';return null}catch(_){return null}}
 function adShow(){const a=adAge();if(a==='no')return;const el=$('adpop');el.hidden=false;AD.shown=true;
   $('adgate').hidden=a==='yes';$('adbody').classList.toggle('locked',a!=='yes');const x=$('adx');x.disabled=true;let w=2;$('adwait').textContent='You can close this in '+w+'s';
   const iv=setInterval(()=>{w--;if(w<=0){clearInterval(iv);x.disabled=false;$('adwait').textContent=''}else $('adwait').textContent='You can close this in '+w+'s'},1000)}
@@ -3133,7 +3133,7 @@ function adTick(p){if(!p||S.attract)return;if(p.dead&&!AD.dead){AD.dead=true;adS
   if(!p.dead&&AD.dead){AD.dead=false;if(AD.shown)adHide()}}
 $('adx').addEventListener('click',adHide);
 $('adyes').addEventListener('click',()=>{try{localStorage.setItem('aa_adult','yes')}catch(_){}$('adgate').hidden=true;$('adbody').classList.remove('locked')});
-$('adno').addEventListener('click',()=>{try{localStorage.setItem('aa_adult','no')}catch(_){}adHide()});
+$('adno').addEventListener('click',()=>{try{localStorage.setItem('aa_adult','no:'+Date.now())}catch(_){}adHide()});
 const annQ=[];let annBusy=false,annAC=null;
 function annSound(big){try{annAC=annAC||new (window.AudioContext||window.webkitAudioContext)();const a=annAC,t=a.currentTime,o=a.createOscillator(),o2=a.createOscillator(),g=a.createGain();
   o.type='sawtooth';o2.type='square';o.frequency.setValueAtTime(big?110:146,t);o.frequency.exponentialRampToValueAtTime(big?55:73,t+0.9);o2.frequency.setValueAtTime(big?220:293,t);o2.frequency.exponentialRampToValueAtTime(110,t+0.7);
