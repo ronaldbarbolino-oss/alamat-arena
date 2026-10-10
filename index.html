@@ -280,7 +280,7 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 #mp{z-index:12}#acct{z-index:13}
 .menutop{display:flex;}
 #mpsize{margin:0 0 10px;display:flex;align-items:center;gap:4px}#mpsize .mpsl{font-size:12px;color:var(--muted);margin-right:6px}#mpsize button:disabled{opacity:.85}
-.act.passive{opacity:.8;border-style:dashed!important}.act.passive .key{font-size:8px!important;letter-spacing:.05em}
+.act.passive{opacity:.8;border-style:dashed!important}.act.passive .mc{font-size:8px;color:#ff8a70;white-space:nowrap;letter-spacing:-.02em}.act.passive .key{font-size:8px!important;letter-spacing:.05em}
 #tut{position:fixed;left:50%;top:calc(58px*var(--hs,1) + 12px);transform:translateX(-50%);z-index:9;width:min(460px,88vw);pointer-events:none}
 #tut[hidden],#tutspot[hidden]{display:none}
 #tut .tcard{pointer-events:auto;background:rgba(8,13,10,.94);border:1px solid var(--gold);border-radius:14px;padding:10px 14px;box-shadow:0 8px 30px rgba(0,0,0,.5);animation:tutin .35s ease}
@@ -937,7 +937,7 @@ function giveXP(dead,amt,rad){
 function heroLabel(h){return h.def.name+(h===S.player&&!S.attract?' (You)':'')}
 function kill(t,src){
   t.dead=true;t.hp=0;t.diedAt=S.t;t.windT=0;
-  if(src&&src.kind==='hero'&&src.defId==='sitan'&&!isStruct(t)){src.souls=Math.min(20,(src.souls||0)+(t.kind==='hero'?4:1));S.vfx.push({k:'soul',x:Math.round(t.x),y:Math.round(t.y),id:src.id})}
+  if(src&&src.kind==='hero'&&src.defId==='sitan'&&!isStruct(t)){const g=t.kind==='hero'?4:1,b0=src.souls||0;src.souls=Math.min(20,b0+g);S.vfx.push({k:'soul',x:Math.round(t.x),y:Math.round(t.y),id:src.id});if(src===S.player&&!S.attract&&src.souls>b0)addText(src.x,src.y-60,'+'+(src.souls-b0)+' SOUL'+(src.souls-b0>1?'S':''),'#ff5a40',1.2)}
   if(t.defId==='sitan')t.souls=Math.floor((t.souls||0)/2);
   const foe=1-t.team;
   if(t.kind==='minion')S.fx.push({type:'mcorpse',x:t.x,y:t.y,team:t.team,ranged:t.ranged,dir:t.dir||1,life:0.9,max:0.9});
@@ -3700,7 +3700,7 @@ function hud(dt){
   $('mlv').textContent='Lv '+p.lvl;$('mkda').textContent=p.kills+'/'+p.deaths+'/'+p.assists;
   $('mxp').style.width=(p.lvl>=15?100:p.xp/needXP(p.lvl)*100)+'%';
   $('mhp').textContent=Math.ceil(p.hp)+' / '+Math.round(p.maxHp);$('me').classList.toggle('low',!p.dead&&p.hp<=Math.max(250,p.maxHp*0.15));$('mmp').textContent=Math.floor(p.mana)+' / '+Math.round(p.maxMana);$('mmana').style.width=(p.mana/p.maxMana*100)+'%';$('mhero').textContent=p.def.name;
-  skBtns.forEach((b,i)=>{const s=p.def.skills[i],cdEl=b.querySelector('.cd'),mc=manaCost(p,i);b.classList.toggle('nomana',p.mana<mc);let me=b.querySelector('.mc');if(!me){me=document.createElement('span');me.className='mc';b.append(me)}if(me.textContent!==String(mc))me.textContent=mc;
+  skBtns.forEach((b,i)=>{const s=p.def.skills[i],cdEl=b.querySelector('.cd'),mc=s.passive?0:manaCost(p,i);b.classList.toggle('nomana',!s.passive&&p.mana<mc);let me=b.querySelector('.mc');if(!me){me=document.createElement('span');me.className='mc';b.append(me)}{const mt=s.passive?((p.souls||0)+'/20 · +'+((p.souls||0)*3)+' DMG'):String(mc);if(me.textContent!==mt)me.textContent=mt}
     b.classList.toggle('oncd',p.cds[i]>0||(s.ult&&p.lvl<4));
     if(s.ult&&p.lvl<4){cdEl.style.setProperty('--cd',1);cdEl.textContent='Lv4'}
     else if(p.cds[i]>0){cdEl.style.setProperty('--cd',p.cds[i]/(s.cd*(1-p.cdr)));cdEl.textContent=Math.ceil(p.cds[i])}
