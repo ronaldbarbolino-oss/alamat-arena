@@ -203,8 +203,8 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .touch #tr{transform:scale(var(--hs,1));transform-origin:top right}
 .touch #top{transform:translateX(-50%) scale(var(--hs,1));transform-origin:top center}
 .touch #feed{top:calc(50px*var(--hs,1) + env(safe-area-inset-top,0px));transform:translateX(-50%) scale(var(--hs,1));transform-origin:top center}
-.touch #pad{transform:scale(var(--hs,1));transform-origin:bottom right;right:calc(10px + env(safe-area-inset-right,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px))}
-.touch #qbuyw{transform:translateX(-50%) scale(var(--hs,1));transform-origin:bottom center}
+.touch #pad{transform:scale(calc(var(--hs,1)*0.82));transform-origin:bottom right;right:calc(10px + env(safe-area-inset-right,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px))}
+.touch #qbuyw{transform:translateX(-50%) scale(calc(var(--hs,1)*0.82));transform-origin:bottom center}
 .touch #joy{width:calc(124px*var(--hs,1));height:calc(124px*var(--hs,1));left:calc(22px + env(safe-area-inset-left,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px))}
 .touch #knob{width:calc(54px*var(--hs,1));height:calc(54px*var(--hs,1));margin:calc(-27px*var(--hs,1)) 0 0 calc(-27px*var(--hs,1))}
 .touch #shop{top:calc(44px + env(safe-area-inset-top,0px));right:calc(8px + env(safe-area-inset-right,0px));max-height:calc(100% - 60px)}
@@ -611,9 +611,9 @@ const HERO_EXTRA={
   wildheart:{dmgType:'phys',build:['bakya','ngipin','baluti','kampilan','puso','balabal']},
   monolith:{dmgType:'phys',build:['bakya','baluti','puso','kalasag','balabal','anting']}};
 for(const k in HERO_EXTRA)Object.assign(HEROES[k],HERO_EXTRA[k]);
-const CREEPS={boar:{name:'Wild Boar',hp:620,atk:30,range:26,aspd:0.9,speed:170,r:18,armor:0.05,gold:48,xp:55},
-  sigbin:{name:'Sigbin',hp:560,atk:36,range:26,aspd:1.0,speed:180,r:17,armor:0.05,gold:48,xp:55},
-  boss:{name:'Bakunawa',hp:4800,atk:95,range:80,aspd:0.6,speed:0,r:52,armor:0.2,gold:200,xp:320}};
+const CREEPS={boar:{name:'Wild Boar',hp:620,atk:16,range:26,aspd:0.9,speed:170,r:18,armor:0.05,gold:48,xp:55},
+  sigbin:{name:'Sigbin',hp:560,atk:19,range:26,aspd:1.0,speed:180,r:17,armor:0.05,gold:48,xp:55},
+  boss:{name:'Bakunawa',hp:4800,atk:70,range:80,aspd:0.6,speed:0,r:52,armor:0.2,gold:200,xp:320}};
 const CAMPS=[{x:950,y:1500,type:'boar'},{x:1700,y:2300,type:'boar'},{x:2250,y:1700,type:'sigbin'},{x:1500,y:900,type:'sigbin'},{x:915,y:1060,type:'boss'}];
 const DIFF={madali:{foe:0.72,react:0.55},normal:{foe:1,react:0.32},mahirap:{foe:1.22,react:0.16}};
 
@@ -708,7 +708,7 @@ function recalc(h,full){
   const d=h.def,it=h.items.map(id=>ITEMS[id]),sum=k=>it.reduce((a,i)=>a+(i[k]||0),0),L=h.lvl-1;
   const ratio=full?1:h.hp/h.maxHp;
   h.maxHp=d.hp+d.hpG*L+sum('hp');
-  h.bonusAtk=sum('atk');h.atk=d.atk+d.atkG*L+h.bonusAtk;
+  h.bonusAtk=sum('atk');h.atk=d.atk*(0.8+0.03*Math.min(7,L))+d.atkG*L+h.bonusAtk;
   h.mp=sum('mp')+(d.dmgType==='mag'?6*L:0);
   h.aspdBase=d.aspd*(1+sum('aspd')+0.025*L);
   h.speedBase=d.speed+sum('spd');
@@ -891,7 +891,7 @@ function kill(t,src){
 function pushEvent(e){e.t=S.t;S.events.push(e)}
 
 // ---------- skills ----------
-function skillDmg(h,s){const sc=h.def.dmgType==='mag'?(h.mp||0)*1.1:h.bonusAtk*0.9;return(s.dmg+(s.dmgG||0)*(h.lvl-1)+sc)*(1+h.skillAmp)*h.dmgMul*(h.formT>0?1+h.formUp:1)}
+function skillDmg(h,s){const sc=h.def.dmgType==='mag'?(h.mp||0)*1.1:h.bonusAtk*0.9;return(s.dmg*(0.65+0.05*Math.min(7,h.lvl-1))+(s.dmgG||0)*(h.lvl-1)+sc)*(1+h.skillAmp)*h.dmgMul*(h.formT>0?1+h.formUp:1)}
 function skillReady(h,i){const s=h.def.skills[i];return h.cds[i]<=0&&(h.mana===undefined||h.mana>=manaCost(h,i))&&!(s.ult&&h.lvl<4)&&!h.dead&&h.stunT<=0&&!h.dash}
 function cast(h,i,tgt){
   if(!skillReady(h,i))return false;
