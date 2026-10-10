@@ -1020,6 +1020,13 @@ function findNear(u,range){
   return best;
 }
 const inRange=(t,u)=>dist(t,u)<=t.range+u.r;
+// balanced tower damage: lane creeps take a share of their max HP (so waves never out-scale towers),
+// heroes take a tier base that grows with game time + a little % max HP, with a gentle combo ramp
+const TWR_BASE={outer:105,inner:125,base:145,core:165};
+function towerDmg(t,u){const tier=t.kind==='core'?'core':t.tier;
+  if(u.kind==='minion')return u.maxHp*(u.siege?0.13:u.ranged?0.45:0.32);
+  if(u.kind!=='hero')return TWR_BASE[tier];
+  return (TWR_BASE[tier]+4*Math.min(25,S.t/60)+0.035*u.maxHp)*(1+0.2*t.combo)}
 function towerTick(t,dt){
   if(t.forceT>0)t.forceT-=dt;
   let tg=null;
@@ -1033,13 +1040,13 @@ function towerTick(t,dt){
   t.target=tg;
   const ent=t.kind==='tower'&&t.team===0;
   if(ent&&t.windT>0){t.windT-=dt;const w=t.wTarget;
-    if(t.windT<=0){if(w&&!w.dead&&canHit(t,w)&&dist(t,w)<=t.range+t.r+w.r+120){t.firedAt=S.t;const hero=w.kind==='hero',dmg=hero?t.dmgHero*(1+0.35*t.combo):t.dmgMinion;if(hero)t.combo=Math.min(t.combo+1,4);
+    if(t.windT<=0){if(w&&!w.dead&&canHit(t,w)&&dist(t,w)<=t.range+t.r+w.r+120){t.firedAt=S.t;const hero=w.kind==='hero',dmg=towerDmg(t,w);if(hero)t.combo=Math.min(t.combo+1,3);
       S.proj.push({homing:true,boulder:true,d0:dist(t,w),target:w,x:t.x+Math.cos(t.aimA)*20,y:t.y+Math.sin(t.aimA)*20,h:120,speed:820,dmg,team:t.team,src:t,color:'#8fd1ff',size:9,tower:true})}t.wTarget=null}
     return}
   if(tg&&t.atkT<=0){t.atkT=1;
     if(ent){t.windT=0.42;t.wTarget=tg;t.grabAt=S.t;t.aimA=Math.atan2(tg.y-t.y,tg.x-t.x);return}
     t.firedAt=S.t;
-    const hero=tg.kind==='hero',dmg=hero?t.dmgHero*(1+0.35*t.combo):t.dmgMinion;if(hero)t.combo=Math.min(t.combo+1,4);
+    const hero=tg.kind==='hero',dmg=towerDmg(t,tg);if(hero)t.combo=Math.min(t.combo+1,3);
     S.proj.push({homing:true,target:tg,x:t.x,y:t.y,h:t.kind==='core'?110:85,speed:900,dmg,team:t.team,src:t,color:t.team?'#c98bff':'#8fd1ff',size:9,tower:true})}
   if(ent&&tg)t.aimA=Math.atan2(tg.y-t.y,tg.x-t.x);
 }
@@ -1202,15 +1209,17 @@ function cmdFor(h,wx,wy){if(!h||h.dead||S.over)return;
   if(best){h.cmd={t:best};ring(best.x,best.y,10,best.r+34,'#ff5d5d',0.4)}
   else{h.cmd={x:clamp(wx,30,W-30),y:clamp(wy,30,H-30)};ring(h.cmd.x,h.cmd.y,6,42,'#62cf86',0.45)}
 }
-function playerCast(i){
-  const h=S&&S.player;if(!h||S.attract||S.over)return;if(typeof NET!=='undefined'&&NET.client){netSend({t:'cast',i});return}castFor(h,i)}
-function castFor(h,i){if(!h||S.over||!skillReady(h,i))return;
+const AIMABLE={fissure:1};
+function playerCast(i,aim){
+  const h=S&&S.player;if(!h||S.attract||S.over)return;if(typeof NET!=='undefined'&&NET.client){netSend(aim?{t:'cast',i,ax:Math.round(aim.x),ay:Math.round(aim.y)}:{t:'cast',i});return}castFor(h,i,aim)}
+function castFor(h,i,aim){if(!h||S.over||!skillReady(h,i))return;
   const s=h.def.skills[i];let r=s.range||(s.radius?s.radius+120:300);
   let t=pickTarget(h,r+40);
   if(h.cmd&&h.cmd.t&&canHit(h,h.cmd.t)&&dist(h,h.cmd.t)<=r+60)t=h.cmd.t;
   if(s.type==='leap'){t=null;let bd=1e9;for(const e of S.heroes)if(canHit(h,e)&&dist(h,e)<=s.range+40&&dist(h,e)<bd){bd=dist(h,e);t=e}}
   if(s.type==='fly'&&!t&&h.cmd&&!h.cmd.t)t={x:h.cmd.x,y:h.cmd.y,r:0};
   if(!t&&(s.type==='nova'||s.type==='buff'||s.type==='shield'||s.type==='transform'||s.type==='phase'))t=pickTarget(h,320);
+  if(aim&&AIMABLE[s.type]&&isFinite(aim.x)&&isFinite(aim.y)&&Math.hypot(aim.x-h.x,aim.y-h.y)>1)t={x:aim.x,y:aim.y,r:0};
   cast(h,i,t);
 }
 function playerRecall(){const h=S&&S.player;if(!h||S.attract)return;if(typeof NET!=='undefined'&&NET.client){netSend({t:'recall'});return}recallFor(h)}
@@ -3311,7 +3320,29 @@ const atkEnd=()=>{input.attack=false;input.pref=null;atk.classList.remove('activ
 for(const[id,pf]of[['atkh','hero'],['atkm','minion']]){const b=$(id);b.addEventListener('pointerdown',e=>{input.attack=true;input.pref=pf;b.classList.add('active');try{b.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault()});
   const end=()=>{input.attack=false;input.pref=null;b.classList.remove('active')};b.addEventListener('pointerup',end);b.addEventListener('pointercancel',end)}
 atk.addEventListener('pointerup',atkEnd);atk.addEventListener('pointercancel',atkEnd);
-skBtns.forEach((b,i)=>b.addEventListener('pointerdown',e=>{e.preventDefault();const ok=S&&S.player&&skillReady(S.player,i);playerCast(i);if(ok)skillCastAnim(i)}));
+// drag-to-aim for aimable skills (Fissure): tap = auto-target, drag = aim where you want
+const AIM={on:false,i:-1,id:null,x0:0,y0:0,dx:0,dy:0,moved:false,mesh:null};
+function aimSkill(i){const h=S&&S.player;return h&&h.def.skills[i]&&AIMABLE[h.def.skills[i].type]?h.def.skills[i]:null}
+function aimPoint(h,sk,ang){return{x:h.x+Math.cos(ang)*sk.range,y:h.y+Math.sin(ang)*sk.range}}
+skBtns.forEach((b,i)=>{
+  b.addEventListener('pointerdown',e=>{e.preventDefault();const h=S&&S.player,ok=h&&skillReady(h,i),sk=aimSkill(i);
+    if(sk&&ok&&e.pointerType!=='mouse'){AIM.on=true;AIM.i=i;AIM.id=e.pointerId;AIM.x0=e.clientX;AIM.y0=e.clientY;AIM.dx=0;AIM.dy=0;AIM.moved=false;try{b.setPointerCapture(e.pointerId)}catch(_){}return}
+    if(sk&&ok&&e.pointerType==='mouse'){const g=groundAt(edgeP.x,edgeP.y);playerCast(i,g);skillCastAnim(i);return}
+    playerCast(i);if(ok)skillCastAnim(i)});
+  b.addEventListener('pointermove',e=>{if(!AIM.on||e.pointerId!==AIM.id)return;AIM.dx=e.clientX-AIM.x0;AIM.dy=e.clientY-AIM.y0;AIM.moved=Math.hypot(AIM.dx,AIM.dy)>14*HS});
+  const up=e=>{if(!AIM.on||e.pointerId!==AIM.id)return;AIM.on=false;const h=S&&S.player,sk=aimSkill(i);
+    if(e.type==='pointercancel'||!h||!sk)return;
+    const ok=skillReady(h,i);if(AIM.moved)playerCast(i,aimPoint(h,sk,Math.atan2(AIM.dy,AIM.dx)));else playerCast(i);if(ok)skillCastAnim(i)};
+  b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up)});
+function aimDraw(){if(!scene)return;
+  if(!AIM.mesh){const g=new THREE.Group(),mat=new THREE.MeshBasicMaterial({color:0xffb347,transparent:true,opacity:0.55,depthWrite:false,depthTest:false});
+    const seg=new THREE.PlaneGeometry(1,1);seg.rotateX(-Math.PI/2);for(let k=0;k<18;k++){const m=new THREE.Mesh(seg,mat);m.renderOrder=20;g.add(m)}
+    const tip=new THREE.Mesh(new THREE.RingGeometry(18,30,24).rotateX(-Math.PI/2),mat);tip.renderOrder=20;g.add(tip);g.visible=false;scene.add(g);AIM.mesh=g}
+  if(AIM.mesh.parent!==scene)scene.add(AIM.mesh);
+  const h=S&&S.player,sk=AIM.on&&AIM.moved&&h&&!h.dead?aimSkill(AIM.i):null;AIM.mesh.visible=!!sk;if(!sk)return;
+  const a=Math.atan2(AIM.dy,AIM.dx),c=Math.cos(a),sn=Math.sin(a),n=18,L=sk.range,w=sk.width||70;
+  for(let k=0;k<n;k++){const m=AIM.mesh.children[k],d=40+(k+0.5)*(L-40)/n,x=h.x+c*d,y=h.y+sn*d;m.position.set(x,hAt(x,y)+4,y);m.scale.set((L-40)/n*0.7,1,w);m.rotation.y=-a}
+  const tp=AIM.mesh.children[n],ex=h.x+c*L,ey=h.y+sn*L;tp.position.set(ex,hAt(ex,ey)+4,ey)}
 $('rc').addEventListener('pointerdown',e=>{e.preventDefault();playerRecall()});
 function playerTp(l){const h=S&&S.player;if(!h||S.attract)return;$('tpmenu').hidden=true;if(NET.client){netSend({t:'tp',l});return}tpFor(h,l)}
 function playerFort(){const h=S&&S.player;if(!h||S.attract)return;if(NET.client){netSend({t:'fort'});return}fortify(h.team)}
@@ -3323,7 +3354,7 @@ window.addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(!S||S.attra
   if(S.paused)return;
   input.keys[k]=true;
   if(k===' '||k==='j'){input.attack=true;e.preventDefault()}
-  for(const[kk,ii]of[['q',0],['e',1],['r',2]])if(k===kk){const ok=S.player&&skillReady(S.player,ii);playerCast(ii);if(ok)skillCastAnim(ii)}if(k==='b')playerRecall();if(k==='g')playerFort();if(k==='y'&&S.player&&atBase(S.player))$('tpmenu').hidden=!$('tpmenu').hidden;if(k==='1'||k==='2'||k==='3'){if(!$('tpmenu').hidden)playerTp(+k-1)}if(k==='p'||k==='tab'){toggleShop();e.preventDefault()}if(k==='u')buy($('qbuy').dataset.id);if(k==='t')setAuto(!AUTO_ATTACK);if(k==='i'){$('statp').hidden=!$('statp').hidden;if(!$('statp').hidden)renderStats()}});
+  for(const[kk,ii]of[['q',0],['e',1],['r',2]])if(k===kk){const ok=S.player&&skillReady(S.player,ii);playerCast(ii,aimSkill(ii)&&edgeP.on?groundAt(edgeP.x,edgeP.y):null);if(ok)skillCastAnim(ii)}if(k==='b')playerRecall();if(k==='g')playerFort();if(k==='y'&&S.player&&atBase(S.player))$('tpmenu').hidden=!$('tpmenu').hidden;if(k==='1'||k==='2'||k==='3'){if(!$('tpmenu').hidden)playerTp(+k-1)}if(k==='p'||k==='tab'){toggleShop();e.preventDefault()}if(k==='u')buy($('qbuy').dataset.id);if(k==='t')setAuto(!AUTO_ATTACK);if(k==='i'){$('statp').hidden=!$('statp').hidden;if(!$('statp').hidden)renderStats()}});
 window.addEventListener('keyup',e=>{const k=e.key.toLowerCase();input.keys[k]=false;if(k===' '||k==='j')input.attack=false});
 window.addEventListener('blur',()=>{input.keys={};input.attack=false;input.mx=input.my=0});
 
@@ -3423,7 +3454,7 @@ function mpHostMsg(c,m){
   if(!S||!NET.started)return;const h=S.heroes.find(x=>x.net===c.peer);if(!h)return;
   if(m.t==='in'){h.inp.mx=+m.mx||0;h.inp.my=+m.my||0;h.inp.attack=!!m.a;h.inp.pref=m.p==='h'?'hero':m.p==='m'?'minion':null}
   else if(m.t==='cmd')cmdFor(h,+m.x,+m.y);
-  else if(m.t==='cast')castFor(h,m.i|0);
+  else if(m.t==='cast')castFor(h,m.i|0,m.ax!=null?{x:+m.ax,y:+m.ay}:null);
   else if(m.t==='recall')recallFor(h);
   else if(m.t==='tp')tpFor(h,m.l|0);
   else if(m.t==='fort')fortify(h.team);
@@ -3639,7 +3670,7 @@ function frame(nowMs){const dt=Math.min(0.25,(nowMs-last)/1000);last=nowMs;const
   adaptQuality(dt);
   if(R3.flash>0)R3.flash-=dt;
   if(hasGL&&renderer){try{render3d(now,S&&S.paused?0:dt)}catch(err){console.error(err)}}
-  overlay();hud(dt);if(!$('menu').hidden)drawPortraits(now,dt);requestAnimationFrame(frame)}
+  overlay();aimDraw();hud(dt);if(!$('menu').hidden)drawPortraits(now,dt);requestAnimationFrame(frame)}
 requestAnimationFrame(frame);
 })();
 </script>
