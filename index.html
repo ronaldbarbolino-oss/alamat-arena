@@ -279,6 +279,7 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 @media (max-height:560px){.adcard{width:auto;flex-direction:row;max-width:92vw}#adbody{flex-direction:row;align-items:center}#adimg img{width:auto;height:min(300px,70vh)}#adbody .adside{display:flex;flex-direction:column;gap:8px}}
 #mp{z-index:12}#acct{z-index:13}
 .menutop{display:flex;}
+#mpsize{margin:0 0 10px;display:flex;align-items:center;gap:4px}#mpsize .mpsl{font-size:12px;color:var(--muted);margin-right:6px}#mpsize button:disabled{opacity:.85}
 .act.passive{opacity:.8;border-style:dashed!important}.act.passive .key{font-size:8px!important;letter-spacing:.05em}
 #tut{position:fixed;left:50%;top:calc(58px*var(--hs,1) + 12px);transform:translateX(-50%);z-index:9;width:min(460px,88vw);pointer-events:none}
 #tut[hidden],#tutspot[hidden]{display:none}
@@ -395,7 +396,7 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 <div class="ov" id="menu">
   <div class="card">
     <div class="menutop"><h1 class="logo">ALAMAT<br><em>ARENA</em></h1><div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end"><button class="chip" id="howto">❓ How to play</button><button class="chip" id="acctbtn">Sign in</button></div></div>
-    <p class="sub">Sentinel vs Scourge, 3 vs 3 across three lanes. Pick a hero, destroy the towers, and bring down the enemy Ancient before they destroy yours.</p>
+    <p class="sub">Sentinel vs Scourge, 5 vs 5 across three lanes. Pick a hero, destroy the towers, and bring down the enemy Ancient before they destroy yours.</p>
     <div id="heroes"></div>
     <div class="rowc">
       <div class="seg" id="diff">
@@ -813,7 +814,9 @@ const TOWER_T={base:0.15,inner:0.27,outer:0.41};
 function mkTower(team,pt,lane,tier){const b=tier==='base';return mkUnit({kind:'tower',team,lane,tier,x:pt.x,y:pt.y,r:b?38:34,hp:b?3300:2600,maxHp:b?3300:2600,range:b?135:125,armor:b?0.2:0.15,dmgHero:b?210:175,dmgMinion:b?190:165,combo:0,force:null,forceT:0})}
 function mkCore(team){const b=BASE[team];return mkUnit({kind:'core',team,x:b.x,y:b.y,r:58,hp:4500,maxHp:4500,range:160,armor:0.15,dmgHero:230,dmgMinion:220,combo:0,force:null,forceT:0})}
 
-function newGame(heroId,diff,attract,roster){
+const LANE_ORDER=[1,0,2,0,2];
+function newGame(heroId,diff,attract,roster,size){
+  size=Math.max(1,Math.min(5,size||5));
   UID=0;
   S={t:0,units:[],heroes:[],proj:[],zones:[],fx:[],texts:[],vfx:[],kills:[0,0],waveT:4,wave:0,over:false,winner:-1,diff,attract,player:null,paused:false,events:[],fortT:[0,0],fortCd:[0,0],pulls:[],tosses:[]};FISS=[];
   for(let l=0;l<3;l++)for(const team of[0,1]){const p=lanePath(l,team);for(const tier in TOWER_T)S.units.push(mkTower(team,pointAt(p,TOWER_T[tier]),l,tier))}
@@ -821,14 +824,14 @@ function newGame(heroId,diff,attract,roster){
   const ids=Object.keys(HEROES);
   const pool=ids.filter(i=>i!==heroId).sort(()=>Math.random()-.5);
   if(roster){const used=new Set(roster.map(r=>r.defId)),fill=ids.filter(i=>!used.has(i)).sort(()=>Math.random()-.5);
-    for(const team of[0,1]){const rs=roster.filter(r=>r.team===team);const lanes=[1,0,2];
-      for(let k=0;k<3;k++){const r=rs[k];const h=mkHero(r?r.defId:(fill.shift()||ids[k]),team,lanes[k],!!r);
+    for(const team of[0,1]){const rs=roster.filter(r=>r.team===team);
+      for(let k=0;k<size;k++){const r=rs[k];const h=mkHero(r?r.defId:(fill.shift()||ids[k]),team,LANE_ORDER[k],!!r);
         if(r&&r.me)S.player=h;if(r&&r.net){h.net=r.net;h.inp={mx:0,my:0,attack:false,keys:{}};h.auto=true}S.units.push(h);S.heroes.push(h)}}}
   else{
-  const me=mkHero(heroId,0,1,!attract);S.player=me;
-  const allies=[mkHero(pool[0],0,0,false),mkHero(pool[1],0,2,false)];
-  const foes=ids.slice().sort(()=>Math.random()-.5).slice(0,3).map((id,i)=>mkHero(id,1,i,false));
-  for(const h of[me,...allies,...foes]){S.units.push(h);S.heroes.push(h)}}
+  const me=mkHero(heroId,0,1,!attract);S.player=me;S.units.push(me);S.heroes.push(me);
+  for(let k=1;k<size;k++){const h=mkHero(pool[k-1],0,LANE_ORDER[k],false);S.units.push(h);S.heroes.push(h)}
+  const foes=ids.slice().sort(()=>Math.random()-.5).slice(0,size);foes.forEach((id,k)=>{const h=mkHero(id,1,LANE_ORDER[k],false);S.units.push(h);S.heroes.push(h)})}
+  S.size=size;for(const team of[0,1]){const f=FOUNT[team],sg=team?-1:1;S.heroes.filter(h=>h.team===team).forEach((h,k)=>{h.x=f.x+sg*(46+k*30);h.y=f.y-sg*(46+(size-1-k)*30)})}
   S.camps=CAMPS.map(c=>({...c,units:[],respawnT:0}));S.camps.forEach(spawnCamp);
 }
 function spawnCamp(camp){
@@ -2331,7 +2334,10 @@ function buildSitan(){
   const r=rigBase({hip:20,leg:11,legR:2.9,legGap:3.8,legCol:0x1e0c12,boot:0x0e0608,torso:22,shW:9,arm:11.5,armR:2.5,armCol:0x2a1018,skin:0x30121a,headR:6.2});
   const shell=r.mk(0x2a1a2e,{shininess:60,specular:0x553344}),crack=basic(0xff2a2a),dark=r.mk(0x180a10),bone=r.mk(0x3a2836);
   mesh(G('stTorso',()=>{const g=new THREE.SphereGeometry(1,14,10);g.scale(8,12,8.6);return g}),shell,r.torso,0,13,0);
-  for(let i=0;i<7;i++){const c=mesh(G('stCrack',()=>new THREE.BoxGeometry(0.5,4+Math.random()*0,0.7)),crack,r.torso,7.8,8+i*1.9,(i%2?1:-1)*(1+i*0.5));c.rotation.x=(i%2?0.6:-0.6)}
+  const lava=new THREE.MeshBasicMaterial({color:0xff3a1a});r.lava=lava;
+  for(let i=0;i<14;i++){const a=(i/14)*Math.PI*1.6-0.8,c=mesh(G('stCrack',()=>new THREE.BoxGeometry(0.5,4,0.7)),lava,r.torso,Math.cos(a)*7.9,5+(i%7)*2.4,Math.sin(a)*8.4);c.rotation.set((i%2?0.6:-0.6),-a,0)}
+  r.arms.forEach(a=>{for(let i=0;i<3;i++){const c=mesh(G('stCrackA',()=>new THREE.BoxGeometry(0.4,3,0.5)),lava,a.el,2.4,-3-i*2.4,(i-1)*1.2);c.rotation.x=(i%2?0.5:-0.5)}});
+  r.headFire=glowSprite(0xff7a1a,30,r.head);r.headFire.position.set(0,6,0);r.headFire.material.opacity=0;
   r.core=glowSprite(0xff2020,22,r.torso);r.core.position.set(6,13,0);
   [-1,1].forEach(s=>{for(let i=0;i<3;i++){const sp=mesh(G('stSpike',()=>{const g=new THREE.ConeGeometry(1.8,11,5);g.translate(0,5.5,0);return g}),bone,r.torso,-2-i*2,21+i*1.5,s*(7+i*2.4));sp.rotation.set(s*(0.5+i*0.25),0,-0.3-i*0.15)}});
   r.arms.forEach(a=>{for(let i=0;i<3;i++){const c=mesh(G('stClaw',()=>{const g=new THREE.ConeGeometry(0.7,5,4);g.translate(0,-2.5,0);return g}),bone,a.hand,1.2,-1,(i-1)*1.4);c.rotation.z=-0.3}
@@ -2360,7 +2366,10 @@ function animSitan(r,P,u,now){
   const n=Math.min(6,Math.ceil((u.souls||0)/3));r.souls.forEach((g,i)=>{const on=i<n;g.material.opacity=on?0.8:0;if(on){const a=now*2.2+i*TAU/n;g.position.set(Math.cos(a)*22,46+Math.sin(now*3+i)*6,Math.sin(a)*22)}});
   r.eyes.forEach(g=>g.material.opacity=0.7+0.3*Math.sin(now*5));
   r.wisps.forEach((w,i)=>{w.rotation.y=i/7*TAU+now*0.8;w.children[0].scale.set(1,0.7+0.4*Math.sin(now*3+i*1.7),1)});
-  r.shadowD.scale.setScalar(1+0.06*Math.sin(now*2));r.shadowRim.material.opacity=0.25+0.15*Math.sin(now*3)+(req?0.3:0);
+  const inf=req||(P.cast>=0&&P.castIdx===2);r.inf=(r.inf||0)+((inf?1:0)-(r.inf||0))*0.12;const I=r.inf;
+  r.lava.color.setRGB(1,0.23+I*0.45+0.1*Math.sin(now*6),0.1+I*0.1);r.headFire.material.opacity=I*(0.75+0.2*Math.sin(now*13));r.headFire.scale.set(26+I*16+Math.sin(now*17)*4,34+I*22+Math.sin(now*11)*5,1);
+  r.core.material.color.setRGB(1,0.15+I*0.45,0.1);r.arms.forEach(a=>a.flame.material.color.setRGB(1,0.2+I*0.5,0.1));
+  r.shadowD.scale.setScalar(1+0.06*Math.sin(now*2)+I*0.3);r.shadowRim.material.color.setRGB(1,0.15+I*0.4,0.05);r.shadowRim.material.opacity=0.25+0.15*Math.sin(now*3)+(req?0.3:0);
 }
 function smoothRig(e,dt){
   if(!e.joints){e.joints=[];e.rig.root.traverse(o=>{if(o.isGroup&&o!==e.rig.root&&o!==e.rig.body)e.joints.push(o)})}
@@ -3104,7 +3113,7 @@ function heroFx4(e){
   if(e.k==='raze'){const z0=hAt(e.x,e.y);for(let q=0;q<2;q++)R3.timers.push({t:q*0.06,fn:()=>strip([{x:e.x,y:z0,z:e.y},{x:e.x,y:z0+200,z:e.y}],{mode:'right',w:e.r*1.1,col:[0.55,0.06,0.08],life:0.3,max:0.3})});
     smoke(e.x,e.y,14,[0.12,0.04,0.06],34,90);for(let i=0;i<22;i++){const a=Math.random()*TAU,rr=Math.random()*e.r;emit(e.x+Math.cos(a)*rr,e.y+Math.sin(a)*rr,6,{vz:160+Math.random()*160,size:16+Math.random()*10,col:[1,0.15+Math.random()*0.2,0.08],life:0.55,max:0.55,drag:0.95})}
     waves(e.x,e.y,e.r,[1,0.2,0.15],2);decal(e.x,e.y,e.r*0.8,0x0a0204,2.5);boomLight(e.x,e.y,0xff2a1a,2.4,320,0.35);R3.shake=Math.max(R3.shake,0.25);return}
-  if(e.k==='requiem'){waves(e.x,e.y,700,[0.8,0.1,0.1],3,0.12);smoke(e.x,e.y,30,[0.15,0.03,0.05],40,40);boomLight(e.x,e.y,0xff2020,3.4,800,1);R3.flash=Math.max(R3.flash,0.1);R3.shake=Math.max(R3.shake,0.8);return}
+  if(e.k==='requiem'){lavaCracks(e.x,e.y,320);fire(e.x,e.y,40,140);sparks(e.x,e.y,40,40,[1,0.6,0.2],380);decal(e.x,e.y,180,0x140402,4);waves(e.x,e.y,700,[1,0.35,0.1],2,0.1);waves(e.x,e.y,700,[0.8,0.1,0.1],3,0.12);smoke(e.x,e.y,30,[0.15,0.03,0.05],40,40);boomLight(e.x,e.y,0xff2020,3.4,800,1);R3.flash=Math.max(R3.flash,0.1);R3.shake=Math.max(R3.shake,0.8);return}
   if(e.k==='soul'){const h=heroById(e.id);if(!h)return;for(let i=0;i<6;i++)emit(e.x,e.y,40,{vx:(Math.random()-.5)*120,vy:(Math.random()-.5)*120,vz:120,size:10,col:[1,0.25,0.2],life:1.6,max:1.6,home:h,age:0,drag:1});return}
 }
 function drawShips(dt){for(const s of R3.ships){s.t+=dt;const k=Math.min(1,s.t/s.dur),x=s.x1+(s.x2-s.x1)*k,y=s.y1+(s.y2-s.y1)*k;s.g.position.set(x,hAt(x,y)+4+Math.sin(s.t*6)*3,y);s.g.rotation.y=-Math.atan2(s.y2-s.y1,s.x2-s.x1);s.g.rotation.x=Math.sin(s.t*4)*0.05;
@@ -3498,7 +3507,7 @@ function render3d(now,dt){
         const sx=p.src.x||p.x,sy=p.src.y||p.y;strip([{x:sx,y:hAt(sx,sy)+44,z:sy},{x:p.x,y:hh,z:p.y}],{mode:'up',w:3,col:[0.75,0.75,0.78],life:0.03,max:0.03});if(Math.random()<0.5)sparks(p.x,p.y,34,1,[0.9,0.9,0.9],80)}
       else if(src==='sarimanok'){const pts=[];for(let i=-5;i<=5;i++){const k=i/5,off=k*58;pts.push({x:p.x-Math.cos(ang)*k*k*40-Math.sin(ang)*off,y:hAt(p.x,p.y)+26+Math.cos(k*1.4)*10,z:p.y-Math.sin(ang)*k*k*40+Math.cos(ang)*off})}
         strip(pts,{mode:'up',w:40,col:[1,0.5,0.12],life:0.05,max:0.05});for(let i=0;i<5;i++){const o=(Math.random()-.5)*110;emit(p.x-Math.sin(ang)*o,p.y+Math.cos(ang)*o,14,{vz:120+Math.random()*80,vx:-p.dx*120,vy:-p.dy*120,size:18+Math.random()*12,col:[1,0.35+Math.random()*0.35,0.08],life:0.5,max:0.5,drag:0.95})}}
-      else if(p.soul){const pts=[{x:p.x-p.dx*60,y:hAt(p.x,p.y)+30,z:p.y-p.dy*60},{x:p.x,y:hAt(p.x,p.y)+34,z:p.y}];strip(pts,{mode:'up',w:p.width*0.5,col:[0.7,0.06,0.08],life:0.05,max:0.05});if(Math.random()<0.6)emit(p.x,p.y,34,{size:16,col:[0.9,0.15,0.1],life:0.4,max:0.4,drag:0.9,soft:1})}
+      else if(p.soul){if(Math.random()<0.7)emit(p.x,p.y,28,{vz:60,size:14+Math.random()*8,col:[1,0.35+Math.random()*0.3,0.08],life:0.35,max:0.35,drag:0.92});const pts=[{x:p.x-p.dx*60,y:hAt(p.x,p.y)+30,z:p.y-p.dy*60},{x:p.x,y:hAt(p.x,p.y)+34,z:p.y}];strip(pts,{mode:'up',w:p.width*0.5,col:[0.7,0.06,0.08],life:0.05,max:0.05});if(Math.random()<0.6)emit(p.x,p.y,34,{size:16,col:[0.9,0.15,0.1],life:0.4,max:0.4,drag:0.9,soft:1})}
       else if(src==='anino'){const a=pools.arrow.get();a.position.set(p.x,30+hAt(p.x,p.y),p.y);a.rotation.set(0,-ang,0);a.scale.setScalar(1.3);for(let i=0;i<2;i++)emit(p.x-p.dx*i*10,p.y-p.dy*i*10,30,{size:10,col:[0.6,0.45,1],life:0.35,max:0.35,drag:0.9})}
       else if(src==='amihan'){
         if(p.big){const pts=[];for(let i=-6;i<=6;i++){const k=i/6,off=k*70,back=-Math.abs(k)*k*0+(-k*k*40);pts.push({x:p.x+Math.cos(ang)*back-Math.sin(ang)*off,y:30+Math.cos(k*1.5)*6,z:p.y+Math.sin(ang)*back+Math.cos(ang)*off})}
@@ -3578,7 +3587,9 @@ function heroAuras(u){
     if(Math.random()<0.5){const a=Math.random()*TAU,rr=Math.random()*330;emit(u.x+Math.cos(a)*rr,u.y+Math.sin(a)*rr,4,{vz:4,size:40,col:[0.6,0.8,0.95],life:1.2,max:1.2,soft:1,drag:1})}}
   if(u.spinT>0){const pts=[];for(let a=0;a<=TAU+0.01;a+=TAU/28)pts.push({x:u.x+Math.cos(a+S.t*20)*62,y:hAt(u.x,u.y)+30+Math.sin(a*3+S.t*30)*6,z:u.y+Math.sin(a+S.t*20)*62});strip(pts,{mode:'up',w:12,col:[1,0.72,0.35],life:0.05,max:0.05});if(Math.random()<0.5)dust(u.x,u.y,1)}
   if(u.cleaveT>0&&Math.random()<0.5)emit(u.x+Math.cos(u.face)*30+(Math.random()-.5)*20,u.y+Math.sin(u.face)*30+(Math.random()-.5)*20,30+Math.random()*30,{vz:-40,size:7,col:[0.55,0.85,1],life:0.5,max:0.5,drag:1});
-  if((u.chanK||0)===3){for(let i=0;i<3;i++){const a=Math.random()*TAU,rr=200+Math.random()*200;emit(u.x+Math.cos(a)*rr,u.y+Math.sin(a)*rr,30+Math.random()*40,{vx:-Math.cos(a)*rr*1.6,vy:-Math.sin(a)*rr*1.6,size:12,col:[0.85,0.1,0.12],life:0.6,max:0.6,drag:1})}}
+  if((u.chanK||0)===3){fire(u.x,u.y,3,34);for(let i=0;i<2;i++)emit(u.x+(Math.random()-.5)*50,u.y+(Math.random()-.5)*50,20+Math.random()*60,{vz:120+Math.random()*120,vx:(Math.random()-.5)*60,vy:(Math.random()-.5)*60,size:5,col:[1,0.6+Math.random()*0.3,0.15],life:0.9,max:0.9,drag:0.98});
+    if(Math.random()<0.2)waveRing(u.x,u.y,40+Math.random()*30,[1,0.35,0.1],8,0.35,3);
+    for(let i=0;i<3;i++){const a=Math.random()*TAU,rr=200+Math.random()*200;emit(u.x+Math.cos(a)*rr,u.y+Math.sin(a)*rr,30+Math.random()*40,{vx:-Math.cos(a)*rr*1.6,vy:-Math.sin(a)*rr*1.6,size:12,col:[0.85,0.1,0.12],life:0.6,max:0.6,drag:1})}}
   if(u.defId==='kapre'&&!u.dead&&Math.random()<0.2)emit(u.x+Math.cos(u.face)*20,u.y+Math.sin(u.face)*20,tall*0.95,{vz:40,vx:(Math.random()-.5)*20,size:14,col:[0.6,0.6,0.62],life:1.6,max:1.6,soft:1,drag:0.99});
   if(u.slowAmt>0&&Math.random()<0.3)emit(u.x+(Math.random()-.5)*30,u.y+(Math.random()-.5)*30,4,{vz:20,size:6,col:[0.55,0.75,1],life:0.6,max:0.6,drag:1})
 }
@@ -4014,7 +4025,7 @@ function mpStatus(t,bad){const el=$('mpstatus');el.textContent=t;el.style.color=
 function mpOpen(){if(!acctOk()){acctOpen();acctMsg('Sign in to play online.',true);return}$('mp').hidden=false;$('mpstart').hidden=true;$('mplobby').hidden=true;$('mphome').hidden=false;mpStatus('Play with friends online. Create a room and share the code, or join a friend\'s room.')}
 function mpClose(){mpLeave();$('mp').hidden=true}
 function mpLeave(){NET.public=false;NET.pubT=null;try{NET.conns.forEach(c=>c.close());if(NET.conn)NET.conn.close();if(NET.peer)NET.peer.destroy()}catch(_){}
-  Object.assign(NET,{host:false,client:false,peer:null,conns:new Map(),conn:null,code:'',players:[],myHero:null,started:false,evSent:0})}
+  Object.assign(NET,{size:5,host:false,client:false,peer:null,conns:new Map(),conn:null,code:'',players:[],myHero:null,started:false,evSent:0})}
 function heroOptions(sel){return Object.keys(HEROES).map(id=>'<option value="'+id+'"'+(id===sel?' selected':'')+'>'+HEROES[id].name+' ('+HEROES[id].role+')</option>').join('')}
 function renderLobby(){const L=$('mplist');L.textContent='';
   for(const t of[0,1]){const col=document.createElement('div');col.className='mpteam '+(t?'scourge':'sentinel');col.innerHTML='<h4>'+(t?'Scourge':'Sentinel')+'</h4>';
@@ -4025,18 +4036,20 @@ function renderLobby(){const L=$('mplist');L.textContent='';
         const sw=document.createElement('button');sw.className='chip';sw.textContent='Switch team';sw.addEventListener('click',()=>mpSet({team:1-p.team}));row.append(sw)}
       else{const h=document.createElement('span');h.textContent=HEROES[p.hero]?HEROES[p.hero].name:'?';row.append(h)}
       col.append(row)}
-    for(let i=ps.length;i<3;i++){const row=document.createElement('div');row.className='mprow ai';row.textContent='AI bot';col.append(row)}
+    for(let i=ps.length;i<(NET.size||5);i++){const row=document.createElement('div');row.className='mprow ai';row.textContent='AI bot';col.append(row)}
     L.append(col)}
+  {let sz=$('mpsize');if(!sz){sz=document.createElement('div');sz.id='mpsize';sz.className='seg';L.parentNode.insertBefore(sz,L)}sz.textContent='';const lab=document.createElement('span');lab.textContent='Mode:';lab.className='mpsl';sz.append(lab);
+    for(const n of[1,2,3,5]){const b=document.createElement('button');b.textContent=n+'v'+n;b.className=(NET.size||5)===n?'on':'';b.disabled=!NET.host;b.addEventListener('click',()=>{if(!NET.host)return;if(NET.players.length>n*2){mpStatus('Too many players for '+n+'v'+n+'. Max '+(n*2)+' players.',true);return}NET.size=n;mpFixTeams();mpBroadcastLobby()});sz.append(b)}}
   $('mpcode').textContent=NET.code;$('mpstart').hidden=!NET.host;$('mpstart').textContent=NET.public?'START NOW':'START';$('mpstart').disabled=!NET.host;
-  mpStatus(NET.host?'Share the code. Press START when everyone is in (max 6 players, AI fills empty slots).':'Waiting for the host to start the match...')}
+  mpStatus(NET.host?'Choose the mode, share the code, then press START (max '+((NET.size||5)*2)+' players, AI fills empty slots).':'Waiting for the host to start the match...')}
 function mpSet(ch){if(NET.host){Object.assign(NET.players.find(p=>p.pid==='host'),ch);mpFixTeams();mpBroadcastLobby()}else if(NET.conn)NET.conn.send(Object.assign({t:'set'},ch))}
-function mpFixTeams(){for(const t of[0,1]){const ps=NET.players.filter(p=>p.team===t);while(ps.length>3){ps.pop().team=1-t}}}
-function mpBroadcastLobby(){const m={t:'lobby',players:NET.players,code:NET.code};NET.conns.forEach(c=>{try{c.send(m)}catch(_){}});renderLobby()}
+function mpFixTeams(){const n=NET.size||5;for(const t of[0,1]){const ps=NET.players.filter(p=>p.team===t);while(ps.length>n){ps.pop().team=1-t}}}
+function mpBroadcastLobby(){const m={t:'lobby',players:NET.players,code:NET.code,size:NET.size||5};NET.conns.forEach(c=>{try{c.send(m)}catch(_){}});renderLobby()}
 async function mpCreate(){mpLeave();NET.code=roomCode();mpStatus('Creating room...');
   try{const peer=await newPeer(MP_PREFIX+NET.code);NET.peer=peer;NET.host=true;
     peer.on('error',e=>mpStatus('Online error: '+(e.type||e.message||e),true));
     peer.on('open',()=>{NET.players=[{pid:'host',name:acctName(),hero:pick,team:0}];$('mphome').hidden=true;$('mplobby').hidden=false;renderLobby()});
-    peer.on('connection',c=>{c.on('open',()=>{if(NET.players.length>=6||NET.started){c.send({t:'full'});setTimeout(()=>c.close(),300);return}NET.conns.set(c.peer,c)});
+    peer.on('connection',c=>{c.on('open',()=>{if(NET.players.length>=(NET.size||5)*2||NET.started){c.send({t:'full'});setTimeout(()=>c.close(),300);return}NET.conns.set(c.peer,c)});
       c.on('data',m=>mpHostMsg(c,m));c.on('close',()=>mpDrop(c.peer))})}catch(e){mpStatus(e.message,true)}}
 async function mpJoin(){const code=($('mpcodein').value||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');if(code.length<4){mpStatus('Type the room code from your friend.',true);return}
   mpLeave();mpStatus('Connecting to room '+code+'...');
@@ -4064,7 +4077,7 @@ function mpHostMsg(c,m){
   else if(m.t==='auto')h.auto=!!m.on}
 function mpStartMatch(){if(!NET.host)return;NET.started=true;
   const roster=NET.players.map(p=>({defId:p.hero,team:p.team,net:p.pid==='host'?null:p.pid,me:p.pid==='host'}));
-  goLandscape();newGame(NET.players[0].hero,diff,false,roster);lastEv=0;NET.evSent=0;$('feed').textContent='';$('shoplist').textContent='';setupSkillButtons();
+  goLandscape();newGame(NET.players[0].hero,diff,false,roster,NET.size||5);lastEv=0;NET.evSent=0;$('feed').textContent='';$('shoplist').textContent='';setupSkillButtons();
   $('mp').hidden=true;$('menu').hidden=true;$('end').hidden=true;$('paused').hidden=true;showHud(true);cam.x=S.player.x;cam.y=S.player.y;
   NET.conns.forEach((c,pid)=>{const h=S.heroes.find(x=>x.net===pid);try{c.send({t:'start',me:h?h.id:-1,diff})}catch(_){}});NET.snapT=0}
 // ---- snapshots ----
@@ -4087,7 +4100,7 @@ function packSnap(){const P=[];for(const p of S.proj){const tg=p.target&&p.targe
 function netHostTick(dt){if(!NET.host||!NET.started||!S||S.attract)return;NET.snapT-=dt;if(NET.snapT>0)return;NET.snapT=1/15;if(!NET.conns.size)return;
   const snap=packSnap();NET.conns.forEach(c=>{try{c.send(snap)}catch(_){}})}
 function mpClientMsg(m){
-  if(m.t==='lobby'){NET.players=m.players;NET.code=m.code;renderLobby();return}
+  if(m.t==='lobby'){NET.players=m.players;NET.code=m.code;NET.size=m.size||5;renderLobby();return}
   if(m.t==='full'){mpStatus('That room is full or already playing.',true);return}
   if(m.t==='count'){mpStatus('Match starts in '+m.n+'s...');return}
   if(m.t==='start'){NET.started=true;NET.myHero=m.me;diff=m.diff||diff;
@@ -4128,7 +4141,7 @@ function netSend(m){if(NET.client&&NET.conn){try{NET.conn.send(m)}catch(_){}retu
 // ---------- quick match: find strangers in public rooms (no server needed) ----------
 const PUB='alamat-arena-pub-',PUB_SLOTS=12;
 function hostSetup(peer,pub){NET.peer=peer;NET.host=true;NET.public=pub;
-  peer.on('connection',c=>{c.on('open',()=>{if(NET.players.length>=6||NET.started){c.send({t:'full'});setTimeout(()=>c.close(),300);return}NET.conns.set(c.peer,c)});
+  peer.on('connection',c=>{c.on('open',()=>{if(NET.players.length>=(NET.size||5)*2||NET.started){c.send({t:'full'});setTimeout(()=>c.close(),300);return}NET.conns.set(c.peer,c)});
     c.on('data',m=>mpHostMsg(c,m));c.on('close',()=>mpDrop(c.peer))});
   NET.players=[{pid:'host',name:acctName(),hero:pick,team:0}];$('mphome').hidden=true;$('mplobby').hidden=false;renderLobby()}
 function joinSetup(peer,c,code){NET.peer=peer;NET.client=true;NET.conn=c;NET.code=code;
