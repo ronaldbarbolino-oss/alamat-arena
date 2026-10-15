@@ -315,6 +315,8 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 @media (max-height:560px){.adcard{width:auto;flex-direction:row;max-width:92vw}#adbody{flex-direction:row;align-items:center}#adimg img{width:auto;height:min(300px,70vh)}#adbody .adside{display:flex;flex-direction:column;gap:8px}}
 #mp{z-index:12}#acct{z-index:13}
 .menutop{display:flex;}
+#aimcancel{position:fixed;z-index:6;right:calc(150px*var(--hs,1) + var(--sar));bottom:calc(205px*var(--hs,1) + env(safe-area-inset-bottom,0px));width:calc(60px*var(--hs,1));height:calc(60px*var(--hs,1));border-radius:50%;background:rgba(40,8,8,.85);border:2px solid rgba(255,90,80,.75);color:#ff8a80;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:20px;font-weight:700;pointer-events:none;box-shadow:0 0 14px rgba(255,60,50,.4)}
+#aimcancel small{font-size:9px;letter-spacing:.06em}#aimcancel[hidden]{display:none}#aimcancel.hot{background:#c0281e;color:#fff;transform:scale(1.15)}
 #mpsize{margin:0 0 10px;display:flex;align-items:center;gap:4px}#mpsize .mpsl{font-size:12px;color:var(--muted);margin-right:6px}#mpsize button:disabled{opacity:.85}
 .act.passive{opacity:.8;border-style:dashed!important}.act.passive .mc{font-size:8px;color:#ff8a70;white-space:nowrap;letter-spacing:-.02em}.act.passive .key{font-size:8px!important;letter-spacing:.05em}
 #tut{position:fixed;left:50%;top:calc(58px*var(--hs,1) + 12px);transform:translateX(-50%);z-index:9;width:min(460px,88vw);pointer-events:none}
@@ -421,6 +423,7 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 </div>
 <div class="hud" id="util"><button class="act" id="buildbtn" aria-label="Open build menu"><span class="nm">BUILD</span></button><button class="act" id="tpbtn" aria-label="Teleport to a tower" hidden><span class="nm">TP</span><div class="cd" id="tpcd"></div></button><button class="act" id="fortbtn" aria-label="Fortify towers"><span class="nm">FORT</span><div class="cd" id="fortcd"></div></button></div>
 <div class="hud" id="tpmenu" hidden><span>Teleport to tower:</span><button data-l="0">TOP</button><button data-l="1">MID</button><button data-l="2">BOT</button><button data-l="-1" class="x">×</button></div>
+<div id="aimcancel" hidden>✕<small>CANCEL</small></div>
 <div id="tutspot" hidden></div>
 <div id="tut" hidden><div class="tcard"><div class="tstep" id="tutstep"></div><b id="tutt"></b><p id="tutx"></p><div class="trow"><button class="chip" id="tutskip">Skip tutorial</button><span id="tuthint"></span><button class="go" id="tutnext">Next</button></div></div></div>
 <div class="hud" id="qbuyw" hidden><button id="qbuy" aria-label="Buy next build item"></button></div>
@@ -1406,7 +1409,7 @@ function cmdFor(h,wx,wy){if(!h||h.dead||S.over)return;
   if(best){h.cmd={t:best};ring(best.x,best.y,10,best.r+34,'#ff5d5d',0.4)}
   else{h.cmd={x:clamp(wx,30,W-30),y:clamp(wy,30,H-30)};ring(h.cmd.x,h.cmd.y,6,42,'#62cf86',0.45)}
 }
-const AIMABLE={fissure:1,hook:1,proj:1,toss:1,raze:1,ship:1};
+const AIMABLE={fissure:1,hook:1,proj:1,toss:1,raze:1,ship:1,aoe:1,dash:1};
 function playerCast(i,aim){
   const h=S&&S.player;if(!h||S.attract||S.over)return;if(typeof NET!=='undefined'&&NET.client){netSend(aim?{t:'cast',i,ax:Math.round(aim.x),ay:Math.round(aim.y)}:{t:'cast',i});return}castFor(h,i,aim)}
 function castFor(h,i,aim){if(!h||S.over||!skillReady(h,i))return;
@@ -4026,16 +4029,16 @@ atk.addEventListener('pointerup',atkEnd);atk.addEventListener('pointercancel',at
 // drag-to-aim for aimable skills (Fissure): tap = auto-target, drag = aim where you want
 const AIM={on:false,i:-1,id:null,x0:0,y0:0,dx:0,dy:0,moved:false,mesh:null};
 function aimSkill(i){const h=S&&S.player;return h&&h.def.skills[i]&&AIMABLE[h.def.skills[i].type]?h.def.skills[i]:null}
-const AIM_DIST={raze:1,ship:1,toss:1};function aimLen(sk){return AIM_DIST[sk.type]?Math.max(120,Math.min(1,Math.hypot(AIM.dx,AIM.dy)/(80*HS))*sk.range):sk.range}
+const AIM_DIST={raze:1,ship:1,toss:1,aoe:1,dash:1};function aimLen(sk){return AIM_DIST[sk.type]?Math.max(120,Math.min(1,Math.hypot(AIM.dx,AIM.dy)/(80*HS))*sk.range):sk.range}
 function aimPoint(h,sk,ang){const L=aimLen(sk);return{x:h.x+Math.cos(ang)*L,y:h.y+Math.sin(ang)*L}}
 skBtns.forEach((b,i)=>{
   b.addEventListener('pointerdown',e=>{e.preventDefault();const h=S&&S.player,ok=h&&skillReady(h,i),sk=aimSkill(i);
     if(sk&&ok&&e.pointerType!=='mouse'){AIM.on=true;AIM.i=i;AIM.id=e.pointerId;AIM.x0=e.clientX;AIM.y0=e.clientY;AIM.dx=0;AIM.dy=0;AIM.moved=false;try{b.setPointerCapture(e.pointerId)}catch(_){}return}
     if(sk&&ok&&e.pointerType==='mouse'){const g=groundAt(edgeP.x,edgeP.y);playerCast(i,g);skillCastAnim(i);return}
     playerCast(i);if(ok)skillCastAnim(i)});
-  b.addEventListener('pointermove',e=>{if(!AIM.on||e.pointerId!==AIM.id)return;AIM.dx=e.clientX-AIM.x0;AIM.dy=e.clientY-AIM.y0;AIM.moved=Math.hypot(AIM.dx,AIM.dy)>14*HS});
-  const up=e=>{if(!AIM.on||e.pointerId!==AIM.id)return;AIM.on=false;const h=S&&S.player,sk=aimSkill(i);
-    if(e.type==='pointercancel'||!h||!sk)return;
+  b.addEventListener('pointermove',e=>{if(!AIM.on||e.pointerId!==AIM.id)return;AIM.dx=e.clientX-AIM.x0;AIM.dy=e.clientY-AIM.y0;AIM.moved=Math.hypot(AIM.dx,AIM.dy)>14*HS;const cb=$('aimcancel');cb.hidden=!AIM.moved;if(AIM.moved){const rc=cb.getBoundingClientRect(),pad=14;AIM.cancel=e.clientX>rc.left-pad&&e.clientX<rc.right+pad&&e.clientY>rc.top-pad&&e.clientY<rc.bottom+pad;cb.classList.toggle('hot',AIM.cancel)}else AIM.cancel=false});
+  const up=e=>{if(!AIM.on||e.pointerId!==AIM.id)return;AIM.on=false;$('aimcancel').hidden=true;$('aimcancel').classList.remove('hot');const h=S&&S.player,sk=aimSkill(i);
+    if(e.type==='pointercancel'||!h||!sk)return;if(AIM.cancel){AIM.cancel=false;return}
     const ok=skillReady(h,i);if(AIM.moved)playerCast(i,aimPoint(h,sk,Math.atan2(AIM.dy,AIM.dx)));else playerCast(i);if(ok)skillCastAnim(i)};
   b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up)});
 function aimDraw(){if(!scene)return;
@@ -4046,7 +4049,8 @@ function aimDraw(){if(!scene)return;
   const h=S&&S.player,sk=AIM.on&&AIM.moved&&h&&!h.dead?aimSkill(AIM.i):null;AIM.mesh.visible=!!sk;if(!sk)return;
   const a=Math.atan2(AIM.dy,AIM.dx),c=Math.cos(a),sn=Math.sin(a),n=18,L=aimLen(sk),w=sk.width||sk.radius||70;
   for(let k=0;k<n;k++){const m=AIM.mesh.children[k],d=40+(k+0.5)*(L-40)/n,x=h.x+c*d,y=h.y+sn*d;m.position.set(x,hAt(x,y)+4,y);m.scale.set((L-40)/n*0.7,1,w);m.rotation.y=-a}
-  const tp=AIM.mesh.children[n],ex=h.x+c*L,ey=h.y+sn*L;tp.position.set(ex,hAt(ex,ey)+4,ey)}
+  const tp=AIM.mesh.children[n],ex=h.x+c*L,ey=h.y+sn*L;tp.position.set(ex,hAt(ex,ey)+4,ey);const area=sk.type==='aoe'||sk.type==='ship'||sk.type==='raze';tp.scale.setScalar(area?(sk.radius||100)/30:1);if(area)AIM.mesh.children.forEach((m,k)=>{if(k<n)m.scale.z=10});
+  AIM.mesh.children[0].material.color.setHex(AIM.cancel?0xff4040:0xffb347)}
 $('rc').addEventListener('pointerdown',e=>{e.preventDefault();playerRecall()});
 function playerTp(l){const h=S&&S.player;if(!h||S.attract)return;$('tpmenu').hidden=true;if(NET.client){netSend({t:'tp',l});return}tpFor(h,l)}
 function playerFort(){const h=S&&S.player;if(!h||S.attract)return;if(NET.client){netSend({t:'fort'});return}fortify(h.team)}
