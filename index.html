@@ -315,6 +315,21 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 @media (max-height:560px){.adcard{width:auto;flex-direction:row;max-width:92vw}#adbody{flex-direction:row;align-items:center}#adimg img{width:auto;height:min(300px,70vh)}#adbody .adside{display:flex;flex-direction:column;gap:8px}}
 #mp{z-index:12}#acct{z-index:13}
 .menutop{display:flex;}
+.hc{position:relative}.hc .hinfo{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.6);border:1px solid var(--gold);color:var(--gold);display:flex;align-items:center;justify-content:center;font-size:15px;z-index:2;cursor:pointer}
+#hd{position:fixed;inset:0;z-index:30;background:rgba(4,6,5,.82);display:flex;align-items:center;justify-content:center;padding:calc(8px + env(safe-area-inset-top,0px)) calc(10px + var(--sar)) calc(8px + env(safe-area-inset-bottom,0px)) calc(10px + var(--sal));box-sizing:border-box}
+#hd[hidden]{display:none}
+#hd .hdcard{position:relative;width:min(760px,100%);max-height:100%;overflow:auto;background:linear-gradient(180deg,#1d1a14,#100e0a);border:2px solid #7a6436;border-radius:14px;padding:14px 16px;box-sizing:border-box;color:var(--ink)}
+#hd .x{position:absolute;top:8px;right:8px;width:38px;height:38px;font-size:22px}
+#hd .hdtop{display:flex;gap:14px;align-items:flex-start;margin-bottom:10px}
+#hd .hdart{width:120px;height:120px;flex:0 0 auto;border-radius:10px;overflow:hidden;border:2px solid var(--hc,#8a7240);background:#0c0b08;display:flex;align-items:center;justify-content:center;font-size:48px;font-weight:700}
+#hd .hdart img{width:100%;height:100%;object-fit:cover;object-position:50% 15%}
+#hd .hdmeta{flex:1;min-width:0;padding-right:36px}#hd .role{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold)}#hd .hdmeta b{display:block;font-size:22px;margin:2px 0 4px}#hd .hdmeta p{margin:0 0 8px;font-size:13px;color:#c9d4c6;line-height:1.35}
+#hd .hattr{display:flex;gap:6px}#hd .hattr span{flex:1;text-align:center;font-size:12px;border:1px solid var(--line);border-radius:6px;padding:3px 0;color:var(--muted);white-space:nowrap}#hd .hattr span.pr{border-color:var(--gold);color:var(--gold)}
+#hd .hdsk{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid rgba(255,255,255,.08)}
+#hd .hdk{flex:0 0 auto;width:30px;height:30px;border-radius:8px;border:2px solid;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--gold)}
+#hd .hdsk b{display:block;font-size:14px;color:#f6d77a}#hd .hdsk small{display:block;font-size:12.5px;color:#c9d4c6;line-height:1.35;margin-top:2px}
+#hd #hdpick{display:block;margin:10px auto 0;padding:10px 26px}
+@media (max-height:460px){#hd .hdart{width:84px;height:84px}#hd .hdmeta b{font-size:18px}#hd .hdmeta p{font-size:12px;margin-bottom:6px}#hd .hdsk{padding:5px 0}#hd .hdsk small{font-size:11.5px}}
 #aimcancel{position:fixed;z-index:6;right:calc(150px*var(--hs,1) + var(--sar));bottom:calc(205px*var(--hs,1) + env(safe-area-inset-bottom,0px));width:calc(60px*var(--hs,1));height:calc(60px*var(--hs,1));border-radius:50%;background:rgba(40,8,8,.85);border:2px solid rgba(255,90,80,.75);color:#ff8a80;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:20px;font-weight:700;pointer-events:none;box-shadow:0 0 14px rgba(255,60,50,.4)}
 #aimcancel small{font-size:9px;letter-spacing:.06em}#aimcancel[hidden]{display:none}#aimcancel.hot{background:#c0281e;color:#fff;transform:scale(1.15)}
 #mpsize{margin:0 0 10px;display:flex;align-items:center;gap:4px}#mpsize .mpsl{font-size:12px;color:var(--muted);margin-right:6px}#mpsize button:disabled{opacity:.85}
@@ -423,6 +438,7 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 </div>
 <div class="hud" id="util"><button class="act" id="buildbtn" aria-label="Open build menu"><span class="nm">BUILD</span></button><button class="act" id="tpbtn" aria-label="Teleport to a tower" hidden><span class="nm">TP</span><div class="cd" id="tpcd"></div></button><button class="act" id="fortbtn" aria-label="Fortify towers"><span class="nm">FORT</span><div class="cd" id="fortcd"></div></button></div>
 <div class="hud" id="tpmenu" hidden><span>Teleport to tower:</span><button data-l="0">TOP</button><button data-l="1">MID</button><button data-l="2">BOT</button><button data-l="-1" class="x">×</button></div>
+<div id="hd" hidden><div class="hdcard"><button class="x" id="hdx" aria-label="Close">×</button><div class="hdtop"><div class="hdart" id="hdart"></div><div class="hdmeta"><div class="role" id="hdrole"></div><b id="hdname"></b><p id="hddesc"></p><div class="hattr" id="hdattr"></div></div></div><div id="hdskills"></div><button class="go" id="hdpick">PICK THIS HERO</button></div></div>
 <div id="aimcancel" hidden>✕<small>CANCEL</small></div>
 <div id="tutspot" hidden></div>
 <div id="tut" hidden><div class="tcard"><div class="tstep" id="tutstep"></div><b id="tutt"></b><p id="tutx"></p><div class="trow"><button class="chip" id="tutskip">Skip tutorial</button><span id="tuthint"></span><button class="go" id="tutnext">Next</button></div></div></div>
@@ -3859,7 +3875,8 @@ for(const id of Object.keys(HEROES).sort((x,y)=>(HERO_ART[y]?1:0)-(HERO_ART[x]?1
   b.querySelector('.role').textContent=d.role;b.querySelector('b').textContent=d.name;b.querySelector('p').textContent=d.desc;
   const ul=b.querySelector('ul');['Q','E','R'].forEach((k,i)=>{const li=document.createElement('li');li.innerHTML='<span></span> ';li.firstChild.textContent=k;li.append(d.skills[i].name);const sm=document.createElement('small');sm.className='skd';sm.textContent=(SKTYPE[d.skills[i].type]||'')+' · '+skillLines(d,1,i).slice(0,3).join(' · ');li.append(sm);ul.append(li)});
   {const A=heroAttr(d,1),at=document.createElement('div');at.className='hattr';for(const[k,lab]of[['str','STR'],['agi','AGI'],['int','INT']]){const sp=document.createElement('span');sp.className=A.prim===k?'pr':'';sp.textContent=lab+' '+A[k]+' +'+A[k+'G'];at.append(sp)}ul.before(at)}
-  b.addEventListener('click',()=>{pick=id;hg.querySelectorAll('.hc').forEach(x=>x.classList.toggle('sel',x.dataset.id===id))});hg.append(b);
+  {const ib=document.createElement('span');ib.className='hinfo';ib.textContent='ⓘ';ib.setAttribute('role','button');ib.setAttribute('aria-label','Hero details');ib.addEventListener('click',e=>{e.stopPropagation();pick=id;hg.querySelectorAll('.hc').forEach(x=>x.classList.toggle('sel',x.dataset.id===id));openHD(id)});b.append(ib)}
+  b.addEventListener('click',()=>{const again=pick===id;pick=id;hg.querySelectorAll('.hc').forEach(x=>x.classList.toggle('sel',x.dataset.id===id));if(again&&document.documentElement.classList.contains('touch'))openHD(id)});hg.append(b);
   const entry={id,c:b.querySelector('canvas').getContext('2d'),lab:b.querySelector('.act-l'),u:{id:900+PORTRAITS.length,defId:id,kind:'hero',face:0,walkPh:0,moveAmt:0,stunT:0,shield:0,buffT:0,recallT:0,atkDur:0.32}};
   if(HERO_ART[id]){const w=document.createElement('div');w.className='art';w.style.setProperty('--hc',d.color);const im=new Image();im.alt=d.name;im.src=HERO_ART[id];im.decoding='async';w.append(im);b.querySelector('canvas').replaceWith(w);entry.art=true;entry.lab.textContent='';
     b.addEventListener('pointermove',e=>{const r=w.getBoundingClientRect();w.style.setProperty('--tx',((e.clientX-r.left)/r.width-0.5).toFixed(3));w.style.setProperty('--ty',((e.clientY-r.top)/r.height-0.5).toFixed(3))});b.addEventListener('pointerleave',()=>{w.style.setProperty('--tx',0);w.style.setProperty('--ty',0)})}
@@ -3941,6 +3958,12 @@ function bgFx(g,id,now){
   if(id==='kapre'){for(let i=0;i<10;i++){const a=now*0.5+i*1.7,x=(i*41+Math.sin(a)*20)%390,y=60+((i*53+now*6)%170);g.fillStyle='rgba(200,255,120,'+(0.4+0.4*Math.sin(now*3+i))+')';g.fillRect(x,y,2,2)}}
   if(id==='aswang'){g.fillStyle='rgba(255,60,40,'+(0.06+0.04*Math.sin(now*1.5))+')';g.fillRect(0,0,390,260)}
 }
+function openHD(id){const d=HEROES[id];if(!d)return;$('hdname').textContent=d.name;$('hdrole').textContent=d.role+' · '+(d.melee?'Melee':'Ranged')+' · '+(d.dmgType==='mag'?'Magic':'Physical');$('hddesc').textContent=d.desc;
+  const art=$('hdart');art.textContent='';art.style.setProperty('--hc',d.color);const src=HERO_ART[id]||conPortrait(id);if(src){const im=new Image();im.src=src;im.alt=d.name;art.append(im)}else{art.textContent=d.glyph;art.style.color=d.color}
+  const A=heroAttr(d,1),at=$('hdattr');at.textContent='';for(const[k,lab]of[['str','STR'],['agi','AGI'],['int','INT']]){const sp=document.createElement('span');sp.className=A.prim===k?'pr':'';sp.textContent=lab+' '+A[k]+' (+'+A[k+'G']+')';at.append(sp)}
+  const sk=$('hdskills');sk.textContent='';d.skills.forEach((s,i)=>{const w=document.createElement('div');w.className='hdsk';const k=document.createElement('span');k.className='hdk';k.textContent=['Q','E','R'][i];k.style.borderColor=d.color;const t=document.createElement('div');const b=document.createElement('b');b.textContent=(SKILL_GLYPH[s.type]||'')+' '+s.name+'  ·  '+(SKTYPE[s.type]||s.type);const sm=document.createElement('small');sm.textContent=skillLines(d,1,i).join(' · ');t.append(b,sm);w.append(k,t);sk.append(w)});
+  $('hdpick').onclick=()=>{pick=id;$('heroes').querySelectorAll('.hc').forEach(x=>x.classList.toggle('sel',x.dataset.id===id));$('hd').hidden=true};$('hd').hidden=false}
+$('hdx').addEventListener('click',()=>{$('hd').hidden=true});$('hd').addEventListener('click',e=>{if(e.target.id==='hd')$('hd').hidden=true});
 function drawPortraits(now,dt){
   if(!pr)return;
   for(const p of PORTRAITS){if(p.art)continue;const u=p.u,cyc=(now+PORTRAITS.indexOf(p)*0.7)%6;let lab='Idle';
