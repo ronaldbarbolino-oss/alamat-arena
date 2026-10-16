@@ -255,8 +255,9 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
   #menu .card{gap:8px;width:100%}
   #menu .logo{font-size:26px}#menu .logo br{display:none}#menu .logo em{margin-left:.25em}
   #menu .sub,#menu .help{display:none}
-  #heroes{display:flex;overflow-x:auto;gap:8px;padding-bottom:4px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;touch-action:pan-x}
-  .hc{flex:0 0 min(150px,24vw);padding:6px;gap:2px;scroll-snap-align:start}
+  html #heroes,html #heroes.taverns{display:flex;flex-direction:row;overflow-x:auto;gap:8px;padding-bottom:4px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;touch-action:pan-x}
+  html .tavern{flex:0 0 auto;padding:4px 6px 6px;scroll-snap-align:start}html .tavern h4{font-size:12.5px;margin:0 0 4px}html .tavern h4 small{font-size:10px}html .tavern .tgrid{display:grid;grid-auto-flow:column;grid-template-rows:auto;grid-template-columns:none;grid-auto-columns:min(112px,17vw);gap:6px}
+  .hc{padding:5px;gap:2px}.hc .hinfo{width:22px;height:22px;font-size:13px}
   .hc p,.hc ul,.hc .sb,.hc .hattr{display:none}
   .hc b{font-size:15px}.hc .role{font-size:9.5px}.hc .act-l{font-size:9px}
   #menu .rowc{position:sticky;bottom:0;background:rgba(8,13,10,.85);padding:6px 8px;border-radius:12px;flex-wrap:nowrap}
@@ -315,6 +316,12 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 @media (max-height:560px){.adcard{width:auto;flex-direction:row;max-width:92vw}#adbody{flex-direction:row;align-items:center}#adimg img{width:auto;height:min(300px,70vh)}#adbody .adside{display:flex;flex-direction:column;gap:8px}}
 #mp{z-index:12}#acct{z-index:13}
 .menutop{display:flex;}
+#heroes.taverns{display:flex;flex-direction:column;gap:12px}
+.tavern{border:2px solid #6b5a33;border-radius:12px;background:linear-gradient(180deg,rgba(40,32,18,.92),rgba(16,13,8,.92));padding:8px 10px 10px;box-shadow:inset 0 0 0 1px #2a2214,0 4px 14px rgba(0,0,0,.35)}
+.tavern h4{margin:0 0 8px;display:flex;align-items:baseline;gap:8px;font-family:Georgia,serif;font-size:17px;color:#f6d77a;letter-spacing:.03em}.tavern h4 small{font-family:inherit;font-size:12px;color:#c8b88a;margin-left:auto}
+.tavern .tgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:700px){.tavern .tgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tavern.flash{animation:tflash .9s}@keyframes tflash{30%{border-color:var(--gold);box-shadow:0 0 22px rgba(242,193,78,.6)}}
 #rolebar{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 8px}#rolebar .chip{font-size:12.5px;padding:5px 11px;border-radius:20px}#rolebar .chip.on{background:var(--gold);color:#1a1408;border-color:var(--gold)}.hc[hidden]{display:none!important}.touch #rolebar{flex-wrap:nowrap;overflow-x:auto;margin:4px 0}.touch #rolebar .chip{flex:0 0 auto;font-size:11.5px;padding:4px 9px}
 #qgame{background:linear-gradient(180deg,#ff7a3a,#c8401c);border-color:#ffb08a;color:#fff}.touch #qgame{font-size:15px;padding-left:12px;padding-right:12px}
 .hc{position:relative}.hc .hinfo{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.6);border:1px solid var(--gold);color:var(--gold);display:flex;align-items:center;justify-content:center;font-size:15px;z-index:2;cursor:pointer}
@@ -3969,8 +3976,14 @@ function bgFx(g,id,now){
   if(id==='kapre'){for(let i=0;i<10;i++){const a=now*0.5+i*1.7,x=(i*41+Math.sin(a)*20)%390,y=60+((i*53+now*6)%170);g.fillStyle='rgba(200,255,120,'+(0.4+0.4*Math.sin(now*3+i))+')';g.fillRect(x,y,2,2)}}
   if(id==='aswang'){g.fillStyle='rgba(255,60,40,'+(0.06+0.04*Math.sin(now*1.5))+')';g.fillRect(0,0,390,260)}
 }
-{const bar=document.createElement('div');bar.id='rolebar';for(const rl of['All',...ROLE_ORDER]){const c=document.createElement('button');c.className='chip'+(rl==='All'?' on':'');c.textContent=rl==='All'?'All':rl+' ('+Object.values(HEROES).filter(d=>d.role===rl).length+')';
-  c.addEventListener('click',()=>{bar.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x===c));hg.querySelectorAll('.hc').forEach(x=>x.hidden=rl!=='All'&&x.dataset.role!==rl);hg.scrollLeft=0;hg.scrollTop=0});bar.append(c)}hg.before(bar)}
+// Dota-style taverns: one framed tavern per role
+const TAVERN={Tank:['🛡️','Tavern of the Guardians','Tanks'],Fighter:['⚔️','Tavern of the Warriors','Fighters'],Assassin:['🗡️','Tavern of Shadows','Assassins'],Mage:['🔮','Tavern of the Mystics','Mages'],Marksman:['🏹','Tavern of the Hunters','Marksmen']};
+{const cards=[...hg.querySelectorAll('.hc')];hg.classList.add('taverns');
+  for(const rl of ROLE_ORDER){const t=document.createElement('section');t.className='tavern';t.dataset.role=rl;const T=TAVERN[rl];
+    const h=document.createElement('h4');h.innerHTML='<span></span><b></b><small></small>';h.children[0].textContent=T[0];h.children[1].textContent=T[1];h.children[2].textContent=T[2]+' · '+cards.filter(c=>c.dataset.role===rl).length;t.append(h);
+    const g=document.createElement('div');g.className='tgrid';cards.filter(c=>c.dataset.role===rl).forEach(c=>g.append(c));t.append(g);hg.append(t)}
+  const bar=document.createElement('div');bar.id='rolebar';for(const rl of ROLE_ORDER){const c=document.createElement('button');c.className='chip';c.textContent=TAVERN[rl][0]+' '+TAVERN[rl][2];
+    c.addEventListener('click',()=>{bar.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x===c));const t=hg.querySelector('.tavern[data-role="'+rl+'"]');t.scrollIntoView({behavior:'smooth',block:'nearest',inline:'start'});t.classList.remove('flash');void t.offsetWidth;t.classList.add('flash')});bar.append(c)}hg.before(bar)}
 function openHD(id){const d=HEROES[id];if(!d)return;$('hdname').textContent=d.name;$('hdrole').textContent=d.role+' · '+(d.melee?'Melee':'Ranged')+' · '+(d.dmgType==='mag'?'Magic':'Physical');$('hddesc').textContent=d.desc;
   const art=$('hdart');art.textContent='';art.style.setProperty('--hc',d.color);const src=HERO_ART[id]||conPortrait(id);if(src){const im=new Image();im.src=src;im.alt=d.name;art.append(im)}else{art.textContent=d.glyph;art.style.color=d.color}
   const A=heroAttr(d,1),at=$('hdattr');at.textContent='';for(const[k,lab]of[['str','STR'],['agi','AGI'],['int','INT']]){const sp=document.createElement('span');sp.className=A.prim===k?'pr':'';sp.textContent=lab+' '+A[k]+' (+'+A[k+'G']+')';at.append(sp)}
