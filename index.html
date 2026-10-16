@@ -555,6 +555,7 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="lib/GLTFLoader.js"></script>
 <script src="lib/SkeletonUtils.js"></script>
+<script src="lib/post.js"></script>
 <script>
 (()=>{
 "use strict";
@@ -1575,7 +1576,8 @@ const LOW=LOW_;const SHADOWS=!LOW;
 let pxr=1,pxrMax=1,fpsT=0,fpsN=0;
 function adaptQuality(dt){if(!renderer||!S)return;fpsT+=dt;fpsN++;if(fpsT<2)return;const fps=fpsN/fpsT;fpsT=0;fpsN=0;
   let np=pxr;if(fps<32&&pxr>0.55)np=Math.max(0.55,pxr-0.15);else if(fps>52&&pxr<pxrMax)np=Math.min(pxrMax,pxr+0.1);
-  if(np!==pxr){pxr=np;renderer.setPixelRatio(pxr);renderer.setSize(vw,vh,false);uniK.value=vh*pxr/(2*Math.tan(20*Math.PI/180))}}
+  if(R3.comp&&R3.bloomOn){if(fps<26)R3.slowT++;else R3.slowT=0;if(R3.slowT>=3){R3.bloomOn=false}}
+  if(np!==pxr){pxr=np;renderer.setPixelRatio(pxr);renderer.setSize(vw,vh,false);if(R3.comp){R3.comp.setPixelRatio(pxr);R3.comp.setSize(vw,vh)}uniK.value=vh*pxr/(2*Math.tan(20*Math.PI/180))}}
 const V=hasGL?new THREE.Vector3():null;
 const geoC={},matC={};
 function G(key,fn){return geoC[key]||(geoC[key]=fn())}
@@ -2489,6 +2491,12 @@ function animGLB(e,P,u,dt,now){const r=e.rig;
   if(P.cast>=0&&B.rarm){const c=ease(P.cast);B.rarm.rotateX(-1.6*c);B.larm.rotateX(-1.2*c);B.spine.rotateX(-0.2*c)}
   if((u.chanK||0)>0&&B.larm){B.rarm.rotateX(-1.2);B.larm.rotateX(-1.2)}
   if(r.swordGlow)r.swordGlow.material.opacity=(u.cleaveT||0)>0?0.7+0.25*Math.sin(now*8):0}
+// fine ground detail: tiled world-space noise so the terrain never looks flat up close
+function detailMat(m){m.onBeforeCompile=sh=>{sh.vertexShader='varying vec3 vWP;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvWP=(modelMatrix*vec4(transformed,1.0)).xyz;');
+  sh.fragmentShader='varying vec3 vWP;\nfloat h21(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}\nfloat vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(h21(i),h21(i+vec2(1,0)),f.x),mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x),f.y);}\n'+sh.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\nfloat dn=vn(vWP.xz/9.0)*0.5+vn(vWP.xz/31.0)*0.35+vn(vWP.xz/120.0)*0.45;diffuseColor.rgb*=0.7+0.42*dn;')};m.customProgramCacheKey=()=>'detail';return m}
+// bloom glow on bright effects (spells, lights); turns itself off on slow devices
+function initBloom(){if(!THREE.EffectComposer||!THREE.UnrealBloomPass)return;try{const c=new THREE.EffectComposer(renderer);c.addPass(new THREE.RenderPass(scene,camera));
+  const b=new THREE.UnrealBloomPass(new THREE.Vector2(Math.max(64,vw/2),Math.max(64,vh/2)),0.6,0.45,0.78);c.addPass(b);R3.comp=c;R3.bloom=b;R3.bloomOn=true;R3.slowT=0}catch(e){R3.comp=null}}
 function smoothRig(e,dt){
   if(!e.joints){e.joints=[];e.rig.root.traverse(o=>{if(o.isGroup&&o!==e.rig.root&&o!==e.rig.body)e.joints.push(o)})}
   const k=1-Math.exp(-dt*22);
@@ -3316,7 +3324,7 @@ let partGeo,partMesh,stripGeo,stripMesh,pools={},riverMat,rockMesh,uniK;
 function makePool(factory){return{items:[],i:0,get(){let m=this.items[this.i];if(!m){m=factory();scene.add(m);this.items.push(m)}this.i++;m.visible=true;return m},begin(){this.i=0},end(){for(let k=this.i;k<this.items.length;k++)this.items[k].visible=false}}}
 function initGL(){
   renderer=new THREE.WebGLRenderer({canvas:$('gl'),antialias:!LOW,powerPreference:'high-performance'});
-  renderer.setClearColor(0x101a12);
+  renderer.setClearColor(0x070b09);
   scene=new THREE.Scene();scene.fog=new THREE.Fog(0x070b09,1500,3400);
   camera=new THREE.PerspectiveCamera(40,1,10,8000);
   scene.add(new THREE.HemisphereLight(0xa8b8e0,0x141810,0.72));
@@ -3330,7 +3338,7 @@ function initGL(){
   const outer=mesh(new THREE.PlaneGeometry(14000,14000),new THREE.MeshLambertMaterial({color:0x1a2616}),scene,W/2,-45,H/2);outer.rotation.x=-Math.PI/2;
   const tex=new THREE.CanvasTexture(TERR.c);tex.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
   const tg=new THREE.PlaneGeometry(W,H,HN-1,HN-1);tg.rotateX(-Math.PI/2);{const pa=tg.attributes.position;for(let i=0;i<pa.count;i++)pa.setY(i,hAt(pa.getX(i)+W/2,pa.getZ(i)+H/2))}tg.computeVertexNormals();
-  const ground=mesh(tg,new THREE.MeshLambertMaterial({map:tex}),scene,W/2,0,H/2);ground.receiveShadow=SHADOWS;
+  const ground=mesh(tg,detailMat(new THREE.MeshLambertMaterial({map:tex})),scene,W/2,0,H/2);ground.receiveShadow=SHADOWS;
   buildGrass();buildMountains();
   // river shimmer
   const mc=document.createElement('canvas');mc.width=mc.height=512;const mg=mc.getContext('2d');mg.fillStyle='#000';mg.fillRect(0,0,512,512);mg.scale(512/W,512/H);mg.strokeStyle='#fff';mg.fillStyle='#fff';mg.lineWidth=230;mg.lineCap='round';mg.lineJoin='round';mg.beginPath();mg.moveTo(RIVER[0].x,RIVER[0].y);RIVER.slice(1).forEach(p=>mg.lineTo(p.x,p.y));mg.stroke();{const R=rng(77);for(let i=0;i<260;i++){const p=pointAt(RIVER,R()),a=R()*TAU,rr=105+R()*45;mg.beginPath();mg.arc(p.x+Math.cos(a)*rr,p.y+Math.sin(a)*rr,14+R()*26,0,TAU);mg.fill()}}
@@ -3339,7 +3347,7 @@ function initGL(){
     vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
     fragmentShader:'varying vec2 vUv;uniform sampler2D mask;uniform float t;void main(){float m=texture2D(mask,vUv).r;if(m<0.02)discard;vec2 p=vUv*90.;float w=sin(p.x*1.1+t*1.6+sin(p.y*0.8+t))*0.5+0.5;w*=sin(p.y*1.3-t*1.3+cos(p.x*0.6-t*0.5))*0.5+0.5;float g=pow(w,4.);float n=sin(p.x*0.21+p.y*0.17+t*0.5)*0.5+0.5;float e=smoothstep(0.02,0.55,m);vec3 deep=vec3(0.035,0.05,0.13),shal=vec3(0.08,0.11,0.24);vec3 c=mix(deep,shal,n*0.55)+vec3(0.35,0.45,0.75)*g*0.16;float rim=smoothstep(0.03,0.16,m)*(1.-smoothstep(0.16,0.42,m));c=c*mix(0.6,1.,e)+vec3(0.28,0.36,0.62)*rim*0.5;gl_FragColor=vec4(c,0.9*smoothstep(0.02,0.12,m)+0.06*g);}'});
   const river=mesh(new THREE.PlaneGeometry(W,H),riverMat,scene,W/2,-6,H/2);river.rotation.x=-Math.PI/2;river.renderOrder=2;
-  buildForest();buildFountains();buildHuts();buildDecor();buildDecor2();buildBase();initSky();loadGLBs();
+  buildForest();buildFountains();buildHuts();buildDecor();buildDecor2();buildBase();initSky();loadGLBs();initBloom();
   R3.lights=[];for(let i=0;i<(LOW?2:5);i++){const l=new THREE.PointLight(0xffffff,0,400,2);scene.add(l);R3.lights.push(l)}
   // particles
   const MAXP=4000;partGeo=new THREE.BufferGeometry();
@@ -3501,7 +3509,7 @@ function buildFountains(){
 function relColHex(u){return u===S.player&&!S.attract?0x62cf86:(u.team===0?0x4aa8ff:0xff5d5d)}
 function ensureEnt(u){
   let e=R3.ents.get(u.id);if(e)return e;
-  if(u.kind==='hero'){const rig=(GLBH[u.defId]&&buildGLBHero(u.defId))||BUILD3D[u.defId]();rig.root.scale.setScalar(1.4);e={u,rig,kind:'hero',yaw:-u.face,trail:[]}}
+  if(u.kind==='hero'){const rig=(GLBH[u.defId]&&buildGLBHero(u.defId))||BUILD3D[u.defId]();if(!rig.glb&&rig.head&&!rig.propFix){rig.propFix=1;rig.head.scale.multiplyScalar(0.82);rig.body.scale.y*=1.07}rig.root.scale.setScalar(1.4);e={u,rig,kind:'hero',yaw:-u.face,trail:[]}}
   else if(u.kind==='minion'){const rig=buildMinion(u.team,u.ranged,u.siege);e={u,rig,kind:'minion',yaw:-u.face}}
   else if(u.kind==='creep'){const rig=buildCreep(u.ctype);e={u,rig,kind:'creep',yaw:-u.face}}
   else{const rig=u.kind==='core'?buildCore(u.team):buildTower(u.team);rig.root.scale.setScalar((u.tier==='base'?1.2:1)*(rig.ent?1.4:1));e={u,rig,kind:u.kind}}
@@ -3698,7 +3706,7 @@ function render3d(now,dt){
   for(let i=0;i<(LOW?1:2);i++){const x=cam.x+(Math.random()-.5)*1400,y=cam.y+(Math.random()-.5)*900;if(isBlight({x,y}))emit(x,y,5,{vz:40+Math.random()*40,vx:(Math.random()-.5)*20,size:4,col:Math.random()<.5?[1,0.45,0.2]:[0.7,0.4,1],life:2.2,max:2.2,drag:1});else emit(x,y,15+Math.random()*40,{vx:(Math.random()-.5)*30,vy:(Math.random()-.5)*30,vz:(Math.random()-.5)*10,size:4,col:[0.85,1,0.45],life:2.5,max:2.5,drag:1,blink:1})}
   for(const t of[0,1]){const o=R3['font'+t];o.position.y=70+Math.sin(now*1.5+t)*6;o.rotation.y=now}
   drawLinks(dt);drawShips(dt);updateParticles(dt);updateStrips(dt);
-  renderer.render(scene,camera);
+  if(R3.comp&&R3.bloomOn){R3.comp.render()}else renderer.render(scene,camera);
 }
 function heroAuras(u){
   const lift=u.dash&&u.dash.leap?Math.sin((1-u.dash.t/u.dash.dur)*Math.PI)*130:u.tossK>0?Math.sin(u.tossK*Math.PI)*210:0;const tall=u.defId==='tikbalang'?118:u.defId==='kapre'?((u.formT||0)>0?160:125):u.defId==='bungisngis'?112:92;
@@ -3791,7 +3799,7 @@ function resize(){
   dpr=Math.min(2,window.devicePixelRatio||1);{const de=document.documentElement,vv=window.visualViewport;vw=Math.round(Math.min(window.innerWidth,de.clientWidth||1e5,vv&&vv.scale<=1.01?vv.width:1e5));vh=Math.round(Math.min(window.innerHeight,de.clientHeight||1e5,vv&&vv.scale<=1.01?vv.height:1e5))}
   HS=clamp(Math.min(vh/420,vw/880),0.62,1.25);document.documentElement.style.setProperty('--hs',HS.toFixed(3));
   ov.width=Math.round(vw*dpr);ov.height=Math.round(vh*dpr);
-  if(renderer){pxrMax=LOW?Math.min(1.25,dpr):Math.min(1.5,dpr);pxr=Math.min(pxr>0?Math.max(pxr,LOW?0.9:1):pxrMax,pxrMax);renderer.setPixelRatio(pxr);renderer.setSize(vw,vh,false);camera.aspect=vw/vh;camera.updateProjectionMatrix();uniK.value=vh*pxr/(2*Math.tan(20*Math.PI/180))}
+  if(renderer){pxrMax=LOW?Math.min(1.25,dpr):Math.min(1.5,dpr);pxr=Math.min(pxr>0?Math.max(pxr,LOW?0.9:1):pxrMax,pxrMax);renderer.setPixelRatio(pxr);renderer.setSize(vw,vh,false);if(R3.comp){R3.comp.setPixelRatio(pxr);R3.comp.setSize(vw,vh);R3.bloom.resolution.set(Math.max(64,vw/2),Math.max(64,vh/2))}camera.aspect=vw/vh;camera.updateProjectionMatrix();uniK.value=vh*pxr/(2*Math.tan(20*Math.PI/180))}
 }
 if(hasGL){try{initGL()}catch(err){console.error(err);$('menu').querySelector('.sub').textContent='3D is not supported on this device.';$('start').disabled=true}}
 window.addEventListener('resize',resize);resize();
