@@ -1706,8 +1706,10 @@ function buildBagwis(){
     for(let i=0;i<6;i++){const f=joint(w,0,0,0);f.rotation.x=s*(0.15+i*0.24);f.rotation.z=0.25+i*0.06;
       mesh(G('feather'+i,()=>{const g=new THREE.SphereGeometry(1,6,5);g.scale(2.6,10+i*1.6,0.6);g.translate(0,9+i*1.4,0);return g}),fm[i%2],f)}
     w.s=s;return w});
-  const kris=G('kris',()=>{const g=new THREE.ConeGeometry(1.9,20,4);g.rotateX(Math.PI);g.translate(0,-10,0);g.scale(1,1,0.35);return g});
-  r.blades=r.arms.map(a=>{const b=joint(a.hand,0,0,0);mesh(kris,steel,b);mesh(G('guard',()=>new THREE.BoxGeometry(1.5,1.5,6)),gold,b);return b});
+  const bladeG=G('bgBlade2',()=>{const g=new THREE.BoxGeometry(3.4,32,0.6);g.translate(0,-18,0);const p=g.attributes.position;for(let i=0;i<p.count;i++){const y=p.getY(i);if(y<-30)p.setX(i,p.getX(i)*0.25+1);p.setX(i,p.getX(i)+(y*y)*0.0035)}return g});
+  const edge=r.mk(0xf4ecff,{emissive:0x5a2a8a,shininess:140,specular:0xffffff});
+  r.blades=r.arms.map(a=>{const b=joint(a.hand,0,0,0);mesh(G('bgGrip2',()=>{const g=new THREE.CylinderGeometry(0.8,0.8,6,6);g.translate(0,2.5,0);return g}),dark,b);
+    mesh(G('guard2',()=>new THREE.BoxGeometry(2,1.6,7.5)),gold,b,0,-0.8,0);mesh(bladeG,edge,b);const gl=glowSprite(0xc070ff,18,b);gl.position.set(1.2,-20,0);gl.material.opacity=0.35;b.glow=gl;return b});
   const plate=r.mk(0x3a2650,{emissive:0x110818});mesh(G('bplate',()=>new THREE.BoxGeometry(3,12,11)),plate,r.torso,7,13,0);
   r.legs.forEach(l=>mesh(G('knee',()=>new THREE.SphereGeometry(2.8,8,6)),plate,l.kn,1.5,0,0));
   r.arms.forEach(a=>{const w=mesh(G('bwrap',()=>new THREE.TorusGeometry(2.3,0.7,5,10)),pink,a.el,0,-4,0);w.rotation.x=Math.PI/2});
@@ -1722,7 +1724,7 @@ function animBagwis(r,P,u,now){
   if(P.atk>=0){const k=P.atk,v=k<0.38?0.4+(k/0.38)*2.9:k<0.6?3.3-(k-0.38)/0.22*3.1:0.2+(k-0.6)/0.4*0.3;if(P.alt)aF=v;else aB=v}
   if(P.dash){aF=-0.9;aB=-1.0}
   setArm(r.arms[1],aF,0.4,0.25);setArm(r.arms[0],aB,0.4,0.25);
-  r.blades.forEach(b=>b.rotation.z=-0.6);
+  r.blades.forEach((b,i)=>{const atk=P.atk>=0&&(i===1?P.alt:!P.alt);b.rotation.z=1.25+(atk?-0.5:0);b.glow.material.opacity=atk||P.dash?0.75:0.3+0.1*Math.sin(now*4+i)});
   r.scarf.rotation.z=-0.5-P.mv*0.6+Math.sin(now*6)*0.15;
   if(P.cast>=0&&P.castIdx===1)r.body.rotation.y=P.cast*TAU*2;
 }
