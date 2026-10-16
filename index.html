@@ -322,7 +322,13 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .tavern .tgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
 @media (max-width:700px){.tavern .tgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .tavern.flash{animation:tflash .9s}@keyframes tflash{30%{border-color:var(--gold);box-shadow:0 0 22px rgba(242,193,78,.6)}}
-#rolebar{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 8px}#rolebar .chip{font-size:12.5px;padding:5px 11px;border-radius:20px}#rolebar .chip.on{background:var(--gold);color:#1a1408;border-color:var(--gold)}.hc[hidden]{display:none!important}.touch #rolebar{flex-wrap:nowrap;overflow-x:auto;margin:4px 0}.touch #rolebar .chip{flex:0 0 auto;font-size:11.5px;padding:4px 9px}
+#heroes.closed{display:none!important}.tavern[hidden]{display:none!important}
+#rolebar .tavbtn{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:12px;border:2px solid #6b5a33;background:linear-gradient(180deg,#2a2214,#14110b);color:#f6d77a;font-family:Georgia,serif}
+#rolebar .tavbtn span{font-size:18px}#rolebar .tavbtn b{font-size:14px}#rolebar .tavbtn small{font-size:11px;color:#c8b88a;background:rgba(0,0,0,.35);border-radius:10px;padding:1px 6px}
+#rolebar .tavbtn.on{border-color:var(--gold);background:linear-gradient(180deg,#4a3a18,#241c0c);box-shadow:0 0 12px rgba(242,193,78,.35);color:#fff}
+#pickedlbl{align-self:center;margin-left:auto;font-size:13px;color:var(--gold)}
+.tavern h4 .tmin{margin-left:8px;font-family:inherit;font-size:11px;padding:3px 9px}
+#rolebar{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 8px}#rolebar .chip{font-size:12.5px;padding:5px 11px;border-radius:20px}#rolebar .chip.on{background:var(--gold);color:#1a1408;border-color:var(--gold)}.hc[hidden]{display:none!important}.touch #rolebar{flex-wrap:nowrap;overflow-x:auto;margin:4px 0}.touch #rolebar .chip{flex:0 0 auto}.touch #rolebar .tavbtn{padding:6px 10px}.touch #rolebar .tavbtn b{font-size:12.5px}.touch #pickedlbl{font-size:11.5px;white-space:nowrap}
 #qgame{background:linear-gradient(180deg,#ff7a3a,#c8401c);border-color:#ffb08a;color:#fff}.touch #qgame{font-size:15px;padding-left:12px;padding-right:12px}
 .hc{position:relative}.hc .hinfo{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.6);border:1px solid var(--gold);color:var(--gold);display:flex;align-items:center;justify-content:center;font-size:15px;z-index:2;cursor:pointer}
 #hd{position:fixed;inset:0;z-index:30;background:rgba(4,6,5,.82);display:flex;align-items:center;justify-content:center;padding:calc(8px + env(safe-area-inset-top,0px)) calc(10px + var(--sar)) calc(8px + env(safe-area-inset-bottom,0px)) calc(10px + var(--sal));box-sizing:border-box}
@@ -3982,8 +3988,14 @@ const TAVERN={Tank:['🛡️','Tavern of the Guardians','Tanks'],Fighter:['⚔�
   for(const rl of ROLE_ORDER){const t=document.createElement('section');t.className='tavern';t.dataset.role=rl;const T=TAVERN[rl];
     const h=document.createElement('h4');h.innerHTML='<span></span><b></b><small></small>';h.children[0].textContent=T[0];h.children[1].textContent=T[1];h.children[2].textContent=T[2]+' · '+cards.filter(c=>c.dataset.role===rl).length;t.append(h);
     const g=document.createElement('div');g.className='tgrid';cards.filter(c=>c.dataset.role===rl).forEach(c=>g.append(c));t.append(g);hg.append(t)}
-  const bar=document.createElement('div');bar.id='rolebar';for(const rl of ROLE_ORDER){const c=document.createElement('button');c.className='chip';c.textContent=TAVERN[rl][0]+' '+TAVERN[rl][2];
-    c.addEventListener('click',()=>{bar.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x===c));const t=hg.querySelector('.tavern[data-role="'+rl+'"]');t.scrollIntoView({behavior:'smooth',block:'nearest',inline:'start'});t.classList.remove('flash');void t.offsetWidth;t.classList.add('flash')});bar.append(c)}hg.before(bar)}
+  const bar=document.createElement('div');bar.id='rolebar';
+  const openTav=rl=>{const cur=hg.dataset.open||'';const nx=cur===rl?'':rl;hg.dataset.open=nx;hg.classList.toggle('closed',!nx);
+    bar.querySelectorAll('.tavbtn').forEach(x=>x.classList.toggle('on',x.dataset.role===nx));hg.querySelectorAll('.tavern').forEach(t=>t.hidden=t.dataset.role!==nx);hg.scrollLeft=0};
+  for(const rl of ROLE_ORDER){const c=document.createElement('button');c.className='chip tavbtn';c.dataset.role=rl;c.innerHTML='<span></span><b></b><small></small>';c.children[0].textContent=TAVERN[rl][0];c.children[1].textContent=TAVERN[rl][2];c.children[2].textContent=cards.filter(x=>x.dataset.role===rl).length;
+    c.addEventListener('click',()=>openTav(rl));bar.append(c)}
+  const sel=document.createElement('span');sel.id='pickedlbl';bar.append(sel);hg.before(bar);
+  hg.querySelectorAll('.tavern').forEach(t=>{const m=document.createElement('button');m.className='chip tmin';m.textContent='▾ Minimize';m.addEventListener('click',()=>openTav(t.dataset.role));t.querySelector('h4').append(m);t.hidden=true});hg.classList.add('closed');
+  const upd=()=>{const d=HEROES[pick];sel.textContent=d?'Selected: '+d.name:''};upd();hg.addEventListener('click',()=>setTimeout(upd,0));document.addEventListener('click',e=>{if(e.target&&e.target.id==='hdpick')setTimeout(upd,0)})}
 function openHD(id){const d=HEROES[id];if(!d)return;$('hdname').textContent=d.name;$('hdrole').textContent=d.role+' · '+(d.melee?'Melee':'Ranged')+' · '+(d.dmgType==='mag'?'Magic':'Physical');$('hddesc').textContent=d.desc;
   const art=$('hdart');art.textContent='';art.style.setProperty('--hc',d.color);const src=HERO_ART[id]||conPortrait(id);if(src){const im=new Image();im.src=src;im.alt=d.name;art.append(im)}else{art.textContent=d.glyph;art.style.color=d.color}
   const A=heroAttr(d,1),at=$('hdattr');at.textContent='';for(const[k,lab]of[['str','STR'],['agi','AGI'],['int','INT']]){const sp=document.createElement('span');sp.className=A.prim===k?'pr':'';sp.textContent=lab+' '+A[k]+' (+'+A[k+'G']+')';at.append(sp)}
