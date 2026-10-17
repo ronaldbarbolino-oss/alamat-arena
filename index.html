@@ -568,6 +568,8 @@ setTimeout(function(){window.bootDone&&window.bootDone()},12000)})();</script>
   <div class="card" style="max-width:340px;align-items:center;text-align:center">
     <h2 class="logo" style="font-size:40px">PAUSE</h2>
     <button class="go" id="resume">RESUME</button>
+    <button class="chip" id="gqbtn" style="justify-content:center">Graphics: High</button>
+    <button class="chip" id="fpsbtn" style="justify-content:center">Show FPS: Off</button>
     <button class="chip" id="quit" style="justify-content:center">Back to menu</button>
   </div>
 </div>
@@ -1600,8 +1602,21 @@ function swayMat(amp,H){const m=new THREE.MeshLambertMaterial({color:0xffffff});
 const LOW_=(navigator.maxTouchPoints>0&&Math.min(screen.width,screen.height)<900)||/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
 const LOW=LOW_;const SHADOWS=!LOW;
 let pxr=1,pxrMax=1,fpsT=0,fpsN=0;
+const FPSD={on:false,el:null,n:0,t:0,js:0};try{FPSD.on=localStorage.getItem('aa_fps')==='1'||/[?&]fps=1/.test(location.search)}catch(e){}
+FPSD.el=document.createElement('div');FPSD.el.style.cssText='position:fixed;left:50%;transform:translateX(-50%);top:calc(48px*var(--hs,1) + 4px);z-index:40;background:rgba(0,0,0,.6);color:#9effa8;font:600 11px ui-monospace,monospace;padding:2px 8px;border-radius:6px;pointer-events:none;white-space:nowrap';FPSD.el.hidden=!FPSD.on;document.body.appendChild(FPSD.el);
+function fpsTick(dt,js){if(!FPSD.on)return;FPSD.n++;FPSD.t+=dt;FPSD.js+=js;if(FPSD.t<0.5)return;const ri=renderer&&renderer.info.render;FPSD.el.textContent=Math.round(FPSD.n/FPSD.t)+' fps · js '+(FPSD.js/FPSD.n).toFixed(1)+'ms · '+(ri?ri.calls+' calls · '+Math.round(ri.triangles/1000)+'k tris · ':'')+pxr.toFixed(2)+'x · '+['L','M','H'][GQ];FPSD.n=0;FPSD.t=0;FPSD.js=0}
+// graphics quality: 0 low, 1 medium, 2 high (phones default to medium)
+let GQ=LOW_?1:2;try{const q=parseInt(localStorage.getItem('aa_gq'));if(q>=0&&q<=2)GQ=q}catch(e){}
+function gqPxMax(d){return LOW?(GQ===2?Math.min(1.7,d):GQ===1?Math.min(1.35,d):1):(GQ===2?Math.min(1.5,d):GQ===1?1:0.8)}
+function applyGQ(){try{localStorage.setItem('aa_gq',String(GQ))}catch(e){}if(typeof scene!=='undefined'&&scene)scene.traverse(o=>{if(o.userData&&o.userData.grass)o.visible=GQ>0});
+  if(typeof renderer!=='undefined'&&renderer){pxrMax=gqPxMax(dpr);pxr=pxrMax;renderer.setPixelRatio(pxr);renderer.setSize(vw,vh,false);if(R3.comp){R3.comp.setPixelRatio(pxr);R3.comp.setSize(vw,vh)}if(typeof uniK!=='undefined')uniK.value=vh*pxr/(2*Math.tan(20*Math.PI/180))}
+  const b=document.getElementById('gqbtn');if(b)b.textContent='Graphics: '+['Low','Medium','High'][GQ]}
 function adaptQuality(dt){if(!renderer||!S)return;fpsT+=dt;fpsN++;if(fpsT<2)return;const fps=fpsN/fpsT;fpsT=0;fpsN=0;
-  const pmin=LOW?Math.min(1,dpr):0.75;let np=pxr;if(fps<27&&pxr>pmin)np=Math.max(pmin,pxr-0.1);else if(fps>48&&pxr<pxrMax)np=Math.min(pxrMax,pxr+0.1);
+  // hysteresis: resizing the canvas is expensive, so only step down after ~6s of low fps and up after ~10s of high fps (never more than once per 8s)
+  const pmin=Math.min(GQ===2?(LOW?1:0.75):GQ===1?0.9:0.7,pxrMax);let np=pxr;const nowS=performance.now()/1000;
+  R3.lowN=fps<28?(R3.lowN||0)+1:0;R3.hiN=fps>55?(R3.hiN||0)+1:0;
+  if(nowS-(R3.pxT||0)>8){if(R3.lowN>=3&&pxr>pmin)np=Math.max(pmin,pxr-0.15);else if(R3.hiN>=5&&pxr<pxrMax)np=Math.min(pxrMax,pxr+0.1)}
+  if(np!==pxr){R3.pxT=nowS;R3.lowN=0;R3.hiN=0}
   if(R3.comp&&R3.bloomOn){if(fps<26)R3.slowT++;else R3.slowT=0;if(R3.slowT>=3){R3.bloomOn=false}}
   if(np!==pxr){pxr=np;renderer.setPixelRatio(pxr);renderer.setSize(vw,vh,false);if(R3.comp){R3.comp.setPixelRatio(pxr);R3.comp.setSize(vw,vh)}uniK.value=vh*pxr/(2*Math.tan(20*Math.PI/180))}}
 const V=hasGL?new THREE.Vector3():null;
@@ -3238,7 +3253,7 @@ function buildCore(team){
 
 // ---------- effect systems ----------
 const R3={portals:[],flashL:[],lvls:[],shake:0,ents:new Map(),dying:[],parts:[],strips:[],rocks:[],timers:[],decals:[],spins:[],S:null,flash:0};
-function emit(x,y,z,o){if(R3.parts.length>(LOW?700:2600)||(LOW&&Math.random()<0.4))return;R3.parts.push(Object.assign({x,y,z,vx:0,vy:0,vz:0,life:0.6,max:0.6,size:8,col:[1,1,1],grav:0,drag:0.94},o))}
+function emit(x,y,z,o){if(R3.parts.length>(GQ===0?300:LOW?700:2600)||(LOW&&Math.random()<(GQ===0?0.65:0.4)))return;R3.parts.push(Object.assign({x,y,z,vx:0,vy:0,vz:0,life:0.6,max:0.6,size:8,col:[1,1,1],grav:0,drag:0.94},o))}
 function hex3(h){return[(h>>16&255)/255,(h>>8&255)/255,(h&255)/255]}
 function css3(s){if(!s)return[1,1,1];if(s[0]==='#'){const n=parseInt(s.slice(1),16);return hex3(n)}return[1,1,1]}
 function strip(pts,o){R3.strips.push(Object.assign({pts,w:8,col:[1,1,1],life:0.3,max:0.3,mode:'right'},o))}
@@ -3585,7 +3600,7 @@ function chunkifyInstances(){const CS=1000,list=[];scene.traverse(o=>{if(o.isIns
       const n=new THREE.InstancedMesh(sub,im.material,idx.length),box=new THREE.Box3();let ms=0;
       idx.forEach((i,j)=>{im.getMatrixAt(i,M);n.setMatrixAt(j,M);M.decompose(P,Q,Sc);box.expandByPoint(P);ms=Math.max(ms,Sc.x,Sc.y,Sc.z);if(im.instanceColor){im.getColorAt(i,C);n.setColorAt(j,C)}});
       const ctr=box.getCenter(new THREE.Vector3());sub.boundingSphere=new THREE.Sphere(ctr,box.getSize(new THREE.Vector3()).length()/2+(gs.radius+gs.center.length())*ms+20);
-      n.frustumCulled=true;n.castShadow=im.castShadow;n.receiveShadow=im.receiveShadow;n.renderOrder=im.renderOrder;n.instanceMatrix.needsUpdate=true;if(n.instanceColor)n.instanceColor.needsUpdate=true;scene.add(n)}
+      n.frustumCulled=true;n.userData=Object.assign({},im.userData);n.castShadow=im.castShadow;n.receiveShadow=im.receiveShadow;n.renderOrder=im.renderOrder;n.instanceMatrix.needsUpdate=true;if(n.instanceColor)n.instanceColor.needsUpdate=true;scene.add(n)}
     scene.remove(im)}}
 function buildForest(){
   const R=rng(23),spots=TREES.filter(t=>!t.wall).map(t=>({x:t.x,y:t.y,s:t.s,b:t.b,k:t.k,r:t.ro}));
@@ -3639,7 +3654,7 @@ function buildGrass(){
   [[lush,k=>C.setHSL(0.27+k*0.06,0.55,0.17+k*0.1)],[dry,k=>C.setHSL(0.08+k*0.05,0.18,0.28+k*0.1)]].forEach(([list,cf])=>{if(!list.length)return;
     const im=new THREE.InstancedMesh(tuft,swayMat(3,11),list.length);im.material.side=THREE.DoubleSide;
     list.forEach((g,i)=>{E.set(0,g.r,0);Q.setFromEuler(E);Mx.compose(new THREE.Vector3(g.x,hAt(g.x,g.y),g.y),Q,new THREE.Vector3(g.s,g.s,g.s));im.setMatrixAt(i,Mx);im.setColorAt(i,cf(g.k))});
-    im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;im.receiveShadow=SHADOWS;scene.add(im)});
+    im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;im.receiveShadow=SHADOWS;im.userData.grass=1;scene.add(im)});
 }
 function buildMountains(){
   const R=rng(99),list=[];
@@ -3690,6 +3705,8 @@ function buildFountains(){
 function relColHex(u){return u===S.player&&!S.attract?0x62cf86:(u.team===0?0x4aa8ff:0xff5d5d)}
 // merge the static meshes that ride on the same joint and share a material -> far fewer draw calls, same look
 const MERGE_C={};
+// compile every shader in the scene up front, including objects that are hidden right now (fog, pools), so nothing compiles mid-fight
+function warmAll(){if(!renderer||!scene)return;try{const hid=[];scene.traverse(o=>{if(!o.visible){hid.push(o);o.visible=true}});renderer.compile(scene,camera);for(const o of hid)o.visible=false}catch(e){}}
 function mergeStatic(r,key){const keep=new Set(),add=v=>{if(v&&v.isObject3D)keep.add(v)};
   for(const k in r){const v=r[k];if(!v||k==='root'||k==='mats')continue;if(v.isObject3D)add(v);else if(Array.isArray(v))v.forEach(x=>{if(x&&x.isObject3D)add(x);else if(x&&typeof x==='object')for(const kk in x)add(x[kk])})}
   const jobs=[];let ji=0;
@@ -3711,7 +3728,7 @@ function minionRig(team,ranged,siege){const k='m'+team+(ranged?1:0)+(siege?1:0),
   r.root.visible=true;r.root.position.y=0;r.body.rotation.set(0,0,0);if(r.mats)for(const m of r.mats){m.opacity=1}return r}
 function minionFree(r){if(!r.poolKey){scene.remove(r.root);return}r.root.visible=false;(MPOOL[r.poolKey]||(MPOOL[r.poolKey]=[])).push(r)}
 function minionPrewarm(){const ks=[];for(const t of[0,1])for(const[ra,si]of[[0,0],[1,0],[0,1]])ks.push([t,ra,si]);let i=0;
-  const step=()=>{if(i>=ks.length*6)return;const[t,ra,si]=ks[i%ks.length];const r=minionRig(t,ra,si);scene.add(r.root);r.root.position.set(-5000,-500,-5000);minionFree(r);i++;setTimeout(step,30)};setTimeout(step,1500)}
+  const step=()=>{if(i>=ks.length*6){warmAll();return}const[t,ra,si]=ks[i%ks.length];const r=minionRig(t,ra,si);scene.add(r.root);r.root.position.set(-5000,-500,-5000);minionFree(r);i++;setTimeout(step,30)};setTimeout(step,1500)}
 function ensureEnt(u){
   let e=R3.ents.get(u.id);if(e)return e;
   if(u.kind==='hero'){const rig=(GLBH[u.defId]&&(buildGLBHero(u.defId)||loadGLB(u.defId)))||BUILD3D[u.defId]();if(!rig.glb){heroProp(rig);mergeStatic(rig,'h'+u.defId)}rig.root.scale.setScalar(1.4);e={u,rig,kind:'hero',yaw:-u.face,trail:[]}}
@@ -3747,8 +3764,9 @@ function render3d(now,dt){
   visUpdate();fogDraw(dt);
   if(R3.S!==S&&!S.attract&&!(typeof NET!=='undefined'&&NET.started)){const ids=[...new Set(S.heroes.map(h=>h.defId))].filter(id=>GLBH[id]);ids.forEach(loadGLB);
     if(ids.some(id=>!glbReady(id))){R3.hold={ids,t0:performance.now()};S.paused=true;let el=document.getElementById('mload');if(!el){el=document.createElement('div');el.id='mload';el.style.cssText='position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:rgba(8,14,10,.92);color:#f2c14e;font:600 16px system-ui;letter-spacing:1px';el.innerHTML='<div style="width:34px;height:34px;border:4px solid #3a5a43;border-top-color:#f2c14e;border-radius:50%;animation:mlspin .8s linear infinite"></div><div>Loading heroes…</div><style>@keyframes mlspin{to{transform:rotate(360deg)}}</style>';document.body.appendChild(el)}el.hidden=false}}
-  if(R3.hold&&S===R3.S){const h=R3.hold;if(h.ids.every(glbReady)||performance.now()-h.t0>12000){R3.hold=null;S.paused=false;const el=document.getElementById('mload');if(el)el.hidden=true;try{renderer.compile(scene,camera)}catch(e){}}}
-  if(R3.S!==S){clearEnts();R3.S=S;lastEv=0;cam.wasDead=false;cam.zoomLive=null;cam.free=false;cam.peek=false;if(!S.attract&&document.documentElement.classList.contains('touch')){setZoom(1);cam.z=1}}
+  if(R3.hold&&S===R3.S){const h=R3.hold;if(h.ids.every(glbReady)||performance.now()-h.t0>12000){R3.hold=null;S.paused=false;const el=document.getElementById('mload');if(el)el.hidden=true;R3.warmAt=performance.now()+300}}
+  if(R3.warmAt&&performance.now()>R3.warmAt){R3.warmAt=0;warmAll()}
+  if(R3.S!==S){R3.warmAt=performance.now()+1500;clearEnts();R3.S=S;lastEv=0;cam.wasDead=false;cam.zoomLive=null;cam.free=false;cam.peek=false;if(!S.attract&&document.documentElement.classList.contains('touch')){setZoom(1);cam.z=1}}
   riverMat.uniforms.t.value=now;
   const T=S.t;
   // camera
@@ -3939,7 +3957,7 @@ function render3d(now,dt){
   for(let i=0;i<(LOW?1:2);i++){const x=cam.x+(Math.random()-.5)*1400,y=cam.y+(Math.random()-.5)*900;if(isBlight({x,y}))emit(x,y,5,{vz:40+Math.random()*40,vx:(Math.random()-.5)*20,size:4,col:Math.random()<.5?[1,0.45,0.2]:[0.7,0.4,1],life:2.2,max:2.2,drag:1});else emit(x,y,15+Math.random()*40,{vx:(Math.random()-.5)*30,vy:(Math.random()-.5)*30,vz:(Math.random()-.5)*10,size:4,col:[0.85,1,0.45],life:2.5,max:2.5,drag:1,blink:1})}
   for(const t of[0,1]){const o=R3['font'+t];o.position.y=70+Math.sin(now*1.5+t)*6;o.rotation.y=now}
   drawLinks(dt);drawShips(dt);updateParticles(dt);updateStrips(dt);
-  if(R3.comp&&R3.bloomOn){R3.comp.render()}else renderer.render(scene,camera);
+  {const PF=window.__PROF,t0=PF?performance.now():0;if(window.__NODRAW){}else if(R3.comp&&R3.bloomOn){R3.comp.render()}else renderer.render(scene,camera);if(PF){if(window.__PROF_GLFINISH){const gl=renderer.getContext();gl.finish()}PF.gldraw=(PF.gldraw||0)+performance.now()-t0}}
 }
 function heroAuras(u){
   const lift=u.dash&&u.dash.leap?Math.sin((1-u.dash.t/u.dash.dur)*Math.PI)*130:u.tossK>0?Math.sin(u.tossK*Math.PI)*210:0;const tall=u.defId==='tikbalang'?118:u.defId==='kapre'?((u.formT||0)>0?160:125):u.defId==='bungisngis'?112:92;
@@ -4032,7 +4050,7 @@ function resize(){
   dpr=Math.min(2,window.devicePixelRatio||1);{const de=document.documentElement,vv=window.visualViewport;vw=Math.round(Math.min(window.innerWidth,de.clientWidth||1e5,vv&&vv.scale<=1.01?vv.width:1e5));vh=Math.round(Math.min(window.innerHeight,de.clientHeight||1e5,vv&&vv.scale<=1.01?vv.height:1e5))}
   HS=clamp(Math.min(vh/420,vw/880),0.62,1.25);document.documentElement.style.setProperty('--hs',HS.toFixed(3));
   ov.width=Math.round(vw*dpr);ov.height=Math.round(vh*dpr);
-  if(renderer){pxrMax=LOW?Math.min(1.7,dpr):Math.min(1.5,dpr);pxr=Math.min(pxr>0?Math.max(pxr,LOW?Math.min(1.35,dpr):1):pxrMax,pxrMax);renderer.setPixelRatio(pxr);renderer.setSize(vw,vh,false);if(R3.comp){R3.comp.setPixelRatio(pxr);R3.comp.setSize(vw,vh);R3.bloom.resolution.set(Math.max(64,vw/2),Math.max(64,vh/2))}camera.aspect=vw/vh;camera.updateProjectionMatrix();uniK.value=vh*pxr/(2*Math.tan(20*Math.PI/180))}
+  if(renderer){pxrMax=gqPxMax(dpr);pxr=Math.min(pxr>0?Math.max(pxr,Math.min(LOW?1.1:1,pxrMax)):pxrMax,pxrMax);renderer.setPixelRatio(pxr);renderer.setSize(vw,vh,false);if(R3.comp){R3.comp.setPixelRatio(pxr);R3.comp.setSize(vw,vh);R3.bloom.resolution.set(Math.max(64,vw/2),Math.max(64,vh/2))}camera.aspect=vw/vh;camera.updateProjectionMatrix();uniK.value=vh*pxr/(2*Math.tan(20*Math.PI/180))}
 }
 if(hasGL){try{initGL()}catch(err){console.error(err);$('menu').querySelector('.sub').textContent='3D is not supported on this device.';$('start').disabled=true}}
 window.addEventListener('resize',resize);resize();
@@ -4336,6 +4354,9 @@ $('again').addEventListener('click',toMenu);
 function setPause(on){if(!S||S.attract||S.over)return;if(!(NET.started))S.paused=on;$('paused').hidden=!on}
 $('pausebtn').addEventListener('click',()=>setPause(true));
 $('resume').addEventListener('click',()=>setPause(false));
+$('gqbtn').addEventListener('click',()=>{GQ=(GQ+2)%3;applyGQ()});
+$('fpsbtn').addEventListener('click',()=>{FPSD.on=!FPSD.on;try{localStorage.setItem('aa_fps',FPSD.on?'1':'0')}catch(e){}$('fpsbtn').textContent='Show FPS: '+(FPSD.on?'On':'Off');FPSD.el.hidden=!FPSD.on});
+applyGQ();$('fpsbtn').textContent='Show FPS: '+(FPSD.on?'On':'Off');
 $('quit').addEventListener('click',toMenu);
 $('goldbtn').addEventListener('click',()=>toggleShop());
 $('shopx').addEventListener('click',()=>toggleShop(false));
@@ -4716,14 +4737,17 @@ $('mpcopy').addEventListener('click',()=>{try{navigator.clipboard.writeText(NET.
 toMenu();
 let last=performance.now();
 let acc=0;const STEP=1/40;
-function frame(nowMs){const dt=Math.min(0.25,(nowMs-last)/1000);last=nowMs;const now=nowMs/1000;
+function frame(nowMs){const dt=Math.min(0.25,(nowMs-last)/1000);last=nowMs;const now=nowMs/1000;const fj0=performance.now();
+  const PF=window.__PROF,T=()=>performance.now();let t=PF?T():0;const mark=k=>{if(PF){const n=T();PF[k]=(PF[k]||0)+n-t;t=n}};
   if(S&&S.remote)netClientStep(dt);
-  else if(S&&!S.paused){acc+=dt;let n=0;while(acc>=STEP&&n<10){update(STEP);acc-=STEP;n++}if(n>=10)acc=0;netHostTick(dt);if(S.attract&&S.over)newGame(Object.keys(HEROES)[Math.floor(Math.random()*4)],'normal',true)}
+  else if(S&&!S.paused){acc+=dt;let n=0;while(acc>=STEP&&n<10){update(STEP);acc-=STEP;n++;if(window.__PROF)window.__PROF.updates=(window.__PROF.updates||0)+1}if(n>=10)acc=0;netHostTick(dt);if(S.attract&&S.over)newGame(Object.keys(HEROES)[Math.floor(Math.random()*4)],'normal',true)}
+  mark('logic');
   adaptQuality(dt);
   if(R3.flash>0)R3.flash-=dt;
   if(hasGL&&renderer){try{render3d(now,S&&S.paused?0:dt)}catch(err){console.error(err)}}
+  mark('render3d');
   if(!window.__bootDone&&(renderer||!hasGL)&&window.bootDone)window.bootDone();
-  overlay();aimDraw();hud(dt);if(!$('menu').hidden)drawPortraits(now,dt);requestAnimationFrame(frame)}
+  overlay();mark('overlay');aimDraw();hud(dt);mark('hud');if(!$('menu').hidden)drawPortraits(now,dt);if(PF)PF.frames=(PF.frames||0)+1;fpsTick(dt,performance.now()-fj0);requestAnimationFrame(frame)}
 requestAnimationFrame(frame);
 })();
 </script>
