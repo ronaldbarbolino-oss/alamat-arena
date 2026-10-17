@@ -75,6 +75,10 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .act{position:absolute;border-radius:50%;background:var(--panel2);border:2px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;touch-action:none}
 .act .nm{font-size:10px;line-height:1.05;text-align:center;padding:0 4px;color:var(--ink);font-weight:600;position:relative;z-index:1}
 .act .key{position:absolute;bottom:3px;font-size:9px;color:var(--muted);z-index:1}
+.act .skup{position:absolute;top:1px;left:50%;transform:translateX(-50%);z-index:3;width:24px;height:24px;border-radius:50%;background:linear-gradient(180deg,#ffe07a,#d9a32e);color:#1c1406;font:800 18px/24px system-ui;text-align:center;box-shadow:0 0 10px rgba(242,193,78,.8);animation:skp 1s ease-in-out infinite;pointer-events:auto}
+@keyframes skp{50%{transform:translateX(-50%) scale(1.15)}}
+.act .pips{position:absolute;bottom:13px;left:0;right:0;display:flex;justify-content:center;gap:2px;z-index:2;pointer-events:none}
+.act .pips i{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.22)}.act .pips i.on{background:#f2c14e}
 .act.oncd .nm{opacity:.18}.act .sic{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:30px;opacity:.38;pointer-events:none;background:radial-gradient(circle,color-mix(in srgb,var(--sc,#f2c14e) 40%,transparent),transparent 70%)}
 .act .nm{position:relative;z-index:1;text-shadow:0 1px 3px #000}
 .act.casting .sic{animation:skCast .5s ease-out}.act.casting::after{content:"";position:absolute;inset:-2px;border-radius:50%;border:3px solid var(--sc,#f2c14e);animation:skRing .5s ease-out forwards;pointer-events:none}
@@ -884,7 +888,7 @@ let S=null,UID=0;
 function mkUnit(o){return Object.assign({id:++UID,x:0,y:0,r:16,team:0,kind:'minion',hp:100,maxHp:100,atk:10,range:60,aspd:1,speed:150,armor:0,atkT:0,stunT:0,slowT:0,slowAmt:0,shield:0,shieldT:0,dead:false,face:0,target:null,hitFlash:0},o)}
 function mkHero(defId,team,lane,isPlayer){
   const d=HEROES[defId];
-  const h=mkUnit({kind:'hero',def:d,defId,team,lane,isPlayer,r:24,lvl:1,xp:0,gold:300,items:[],cds:[0,0,0],kills:0,deaths:0,assists:0,streak:0,respawnT:0,
+  const h=mkUnit({kind:'hero',def:d,defId,team,lane,isPlayer,r:24,lvl:1,xp:0,gold:300,items:[],cds:[0,0,0],sl:[0,0,0],sp:1,spT:0,kills:0,deaths:0,assists:0,streak:0,respawnT:0,
     buffT:0,buffAspd:0,buffSpd:0,recallT:0,dmgBy:new Map(),retreating:false,think:0,dmgMul:1,react:0.3,melee:d.melee,dash:null});
   if(team===1){h.dmgMul=DIFF[S.diff].foe;h.react=DIFF[S.diff].react}
   recalc(h,true);
@@ -893,7 +897,7 @@ function mkHero(defId,team,lane,isPlayer){
   return h;
 }
 function recalc(h,full){
-  const d=h.def,it=h.items.map(id=>ITEMS[id]),sum=k=>it.reduce((a,i)=>a+(i[k]||0),0),L=h.lvl-1;
+  const d=h.def,it=h.items.map(id=>ITEMS[id]),sum=k=>it.reduce((a,i)=>a+(i[k]||0),0),L=effL(h.lvl)-1;
   const ratio=full?1:h.hp/h.maxHp;
   h.maxHp=(d.hp+d.hpG*L)*BAL.hp+sum('hp');
   h.bonusAtk=sum('atk');h.atk=(d.atk*(0.7+0.043*Math.min(7,L))+d.atkG*L)*BAL.atk+h.bonusAtk;
@@ -912,8 +916,8 @@ function manaCost(h,i){const s=h.def.skills[i],L=h.lvl-1;return Math.round(s.ult
 const TOWER_T={base:0.15,inner:0.27,outer:0.41};
 // 3rd (base) tower sits inside the base plaza, a fixed distance from the core
 function towerT(p,tier){return tier==='base'?395/pathLen(p):TOWER_T[tier]}
-function mkTower(team,pt,lane,tier){const b=tier==='base';return mkUnit({kind:'tower',team,lane,tier,x:pt.x,y:pt.y,r:b?38:34,hp:b?3300:2600,maxHp:b?3300:2600,range:b?135:125,armor:b?0.2:0.15,dmgHero:b?210:175,dmgMinion:b?190:165,combo:0,force:null,forceT:0})}
-function mkCore(team){const b=BASE[team];return mkUnit({kind:'core',team,x:b.x,y:b.y,r:58,hp:4500,maxHp:4500,range:160,armor:0.15,dmgHero:230,dmgMinion:220,combo:0,force:null,forceT:0})}
+function mkTower(team,pt,lane,tier){const b=tier==='base';return mkUnit({kind:'tower',team,lane,tier,x:pt.x,y:pt.y,r:b?38:34,hp:b?3300:2600,maxHp:b?3300:2600,range:b?135:125,armor:b?0.38:0.32,dmgHero:b?210:175,dmgMinion:b?190:165,combo:0,force:null,forceT:0})}
+function mkCore(team){const b=BASE[team];return mkUnit({kind:'core',team,x:b.x,y:b.y,r:58,hp:4500,maxHp:4500,range:160,armor:0.35,dmgHero:230,dmgMinion:220,combo:0,force:null,forceT:0})}
 
 const LANE_ORDER=[1,0,2,0,2];
 function newGame(heroId,diff,attract,roster,size){
@@ -964,6 +968,18 @@ const canHit=(a,e)=>!e.dead&&e.team!==a.team&&!e.invuln;
 const aspdOf=u=>u.kind==='hero'?u.aspdBase*(1+u.buffAspd):u.aspd;
 const effSpeed=u=>(u.kind==='hero'?u.speedBase*(1+u.buffSpd):u.speed)*(1-(u.slowAmt||0));
 const needXP=l=>120+l*95;
+// ---------- hero levels 1-25 and skill leveling ----------
+const MAXLV=25,SK_MAX=[6,6,4],ULT_REQ=[4,10,16,22];
+const effL=L=>L<=14?L:14+(L-14)*0.5; // stat growth slows down after level 15
+function skMax(h,i){return h.def.skills[i].ult?4:6}
+function skReq(h,i,n){return h.def.skills[i].ult?ULT_REQ[n]||99:2*n+1} // hero level needed for the (n+1)th point
+function canSkUp(h,i){if(!h.sl||!(h.sp>0))return false;const n=h.sl[i];return n<skMax(h,i)&&h.lvl>=skReq(h,i,n)}
+function skillUp(h,i){if(!canSkUp(h,i))return false;h.sl[i]++;h.sp--;h.spT=0;return true}
+function autoSkill(h){const ord=[];h.def.skills.forEach((s,i)=>{if(s.ult)ord.unshift(i)});for(const i of[0,1,2])if(!ord.includes(i))ord.push(i);
+  // ult first when possible, otherwise the lowest basic skill (Q before E)
+  for(const i of ord)if(h.def.skills[i].ult&&canSkUp(h,i))return skillUp(h,i);
+  let best=-1;for(const i of ord)if(!h.def.skills[i].ult&&canSkUp(h,i)&&(best<0||h.sl[i]<h.sl[best]))best=i;return best>=0?skillUp(h,best):false}
+function skMul(h,i){const n=Math.max(1,(h.sl&&h.sl[i])||1);return h.def.skills[i].ult?0.6+0.25*(n-1):0.5+0.12*(n-1)}
 const heroById=id=>S.heroes.find(h=>h.id===id);
 
 function moveDir(u,dx,dy,dt,maxStep){
@@ -1003,7 +1019,7 @@ function doAttack(u,t){
 function dealDamage(src,tgt,amt,skill,crit){
   if(tgt.dead||tgt.invuln)return;
   if(src&&src.kind==='minion'&&isStruct(tgt))amt*=src.siege?2.2:0.8;
-  if(src){const mag=skill&&src.kind==='hero'&&src.def.dmgType==='mag';
+  if(src&&!(isStruct(src)&&tgt.kind==='hero')){const mag=skill&&src.kind==='hero'&&src.def.dmgType==='mag';
     if(mag){const r=Math.max(0,(tgt.mres||0)-(src.mpen||0));amt*=(1-(tgt.kind==='hero'?0.05:tgt.armor*0.5))*120/(120+r)}
     else{const r=Math.max(0,(tgt.pdef||0)-(src.pen||0)-(darkLord(tgt)?25:0));amt*=(1-Math.max(0,tgt.armor-(darkLord(tgt)?0.08:0)))*120/(120+r)}}
   if(src&&src.kind==='hero'&&!src.dead){const v=skill?src.sv:src.ls;if(v>0)src.hp=Math.min(src.maxHp,src.hp+amt*v*(skill&&!isStruct(tgt)?1:isStruct(tgt)?0:1))}
@@ -1032,7 +1048,7 @@ function giveXP(dead,amt,rad){
   const hs=S.heroes.filter(h=>!h.dead&&h.team!==dead.team&&dist(h,dead)<=rad);
   if(!hs.length)return;
   const share=amt/hs.length*(hs.length>1?1.25:1);
-  for(const h of hs){h.xp+=share;while(h.lvl<15&&h.xp>=needXP(h.lvl)){h.xp-=needXP(h.lvl);h.lvl++;S.vfx.push({k:'lvl',id:h.id});const r=h.hp/h.maxHp;recalc(h);h.hp=Math.min(h.maxHp,h.maxHp*r+h.maxHp*0.1);
+  for(const h of hs){h.xp+=share;while(h.lvl<MAXLV&&h.xp>=needXP(h.lvl)){h.xp-=needXP(h.lvl);h.lvl++;h.sp=(h.sp||0)+1;S.vfx.push({k:'lvl',id:h.id});const r=h.hp/h.maxHp;recalc(h);h.hp=Math.min(h.maxHp,h.maxHp*r+h.maxHp*0.1);
     ring(h.x,h.y,20,90,'#f2c14e',0.6);if(h===S.player&&!S.attract)addText(h.x,h.y-50,'LEVEL '+h.lvl,'#f2c14e',1.6)}}
 }
 function heroLabel(h){return h.def.name+(h===S.player&&!S.attract?' (You)':'')}
@@ -1090,8 +1106,8 @@ function pushEvent(e){e.t=S.t;S.events.push(e)}
 // ---------- skills ----------
 // global balance knobs (Dota/ML-like time-to-kill)
 const BAL={hp:1.7,atk:0.85,skill:0.75,scale:0.7};
-function skillDmg(h,s){const sc=(h.def.dmgType==='mag'?(h.mp||0)*1.1:h.bonusAtk*0.9)*BAL.scale;return(s.dmg*(0.5+0.0715*Math.min(7,h.lvl-1))+(s.dmgG||0)*(h.lvl-1)+sc)*BAL.skill*(1+h.skillAmp)*h.dmgMul*(h.formT>0?1+h.formUp:1)}
-function skillReady(h,i){const s=h.def.skills[i];return !s.passive&&h.cds[i]<=0&&(h.mana===undefined||h.mana>=manaCost(h,i))&&!(s.ult&&h.lvl<4)&&!h.dead&&h.stunT<=0&&!h.dash}
+function skillDmg(h,s){const sc=(h.def.dmgType==='mag'?(h.mp||0)*1.1:h.bonusAtk*0.9)*BAL.scale,si=h.def.skills.indexOf(s);return(s.dmg*(si>=0?skMul(h,si):1)+(s.dmgG||0)*(effL(h.lvl)-1)+sc)*BAL.skill*(1+h.skillAmp)*h.dmgMul*(h.formT>0?1+h.formUp:1)}
+function skillReady(h,i){const s=h.def.skills[i];return !s.passive&&h.cds[i]<=0&&(h.mana===undefined||h.mana>=manaCost(h,i))&&!(h.sl&&h.sl[i]<1)&&!h.dead&&h.stunT<=0&&!h.dash}
 function cast(h,i,tgt){
   if(!skillReady(h,i))return false;
   const s=h.def.skills[i];
@@ -1099,7 +1115,7 @@ function cast(h,i,tgt){
   if(NEED_T[s.type]&&!(tgt&&!tgt.dead&&tgt.r>0&&!isStruct(tgt)&&canHit(h,tgt)&&dist(h,tgt)<=s.range+tgt.r+40)){tgt=bestEnemy(h,s.range+40);if(!tgt)return false}
   let razeD=null;if(s.type==='raze'&&tgt){razeD=dist(h,tgt);if(h.isPlayer&&tgt.r!==0){const a=Math.atan2(tgt.y-h.y,tgt.x-h.x),df=Math.abs(((a-h.face)%(Math.PI*2)+Math.PI*3)%(Math.PI*2)-Math.PI);if(df>0.6)razeD=null;tgt=null}}
   let grab=null;if(s.type==='toss'){grab=tossGrab(h,s);if(!grab)return false}
-  if(h.mana!==undefined)h.mana-=manaCost(h,i);h.cds[i]=s.cd*(1-h.cdr);h.recallT=0;h.castAt=S.t;h.castIdx=i;h.windT=0;
+  if(h.mana!==undefined)h.mana-=manaCost(h,i);h.cds[i]=s.cd*(1-h.cdr)*(1-0.05*Math.max(0,((h.sl&&h.sl[i])||1)-1));h.recallT=0;h.castAt=S.t;h.castIdx=i;h.windT=0;
   S.vfx.push({k:'cast',id:h.id,i,x:h.x,y:h.y});
   const dmg=s.dmg?skillDmg(h,s):0;
   let ang=h.face;if(tgt){ang=Math.atan2(tgt.y-h.y,tgt.x-h.x);h.face=ang}
@@ -1218,6 +1234,7 @@ function tpFor(h,lane){if(!h||h.dead||(h.tpCd||0)>0||!atBase(h)||h.stunT>0)retur
 function respawn(h){const f=FOUNT[h.team];h.dead=false;h.chan=null;h.chanK=0;h.omni=null;h.invuln=false;h.spinT=0;h.auraT=0;h.critT=0;h.tossed=false;h.tossK=0;S.vfx.push({k:'spawn',id:h.id});h.hp=h.maxHp;h.mana=h.maxMana;h.tpT=0;h.x=f.x+(h.team?-1:1)*40;h.y=f.y+(h.team?1:-1)*40;h.stunT=0;h.slowAmt=0;h.dmgBy.clear();h.retreating=false;h.target=null}
 function heroTick(h,dt){
   for(let i=0;i<3;i++)if(h.cds[i]>0)h.cds[i]-=dt;
+  if(h.sp>0){const human=h===S.player&&!S.attract||!!h.inp;h.spT=(h.spT||0)+dt;if(!human||h.spT>6){if(!autoSkill(h))h.spT=0}}
   if(h.buffT>0){h.buffT-=dt;if(h.buffT<=0){h.buffAspd=0;h.buffSpd=0}}
   if(h.formT>0)h.formT-=dt;if(h.phaseT>0)h.phaseT-=dt;
   if(h.critT>0)h.critT-=dt;if(h.cleaveT>0)h.cleaveT-=dt;
@@ -1272,7 +1289,7 @@ const TWR_BASE={outer:105,inner:125,base:145,core:165};
 function towerDmg(t,u){const tier=t.kind==='core'?'core':t.tier;
   if(u.kind==='minion')return u.maxHp*(u.siege?0.13:u.ranged?0.45:0.32);
   if(u.kind!=='hero')return TWR_BASE[tier];
-  return (TWR_BASE[tier]+4*Math.min(25,S.t/60)+0.035*u.maxHp)*(1+0.2*t.combo)}
+  return 0.15*u.maxHp}
 function towerTick(t,dt){
   if(t.forceT>0)t.forceT-=dt;
   let tg=null;
@@ -4065,6 +4082,10 @@ const SKILL_GLYPH={proj:'☄️',aoe:'💥',nova:'🌀',dash:'💨',leap:'🦅',
 function setupSkillButtons(){const d=S.player.def;skBtns.forEach((b,i)=>{const sk=d.skills[i];b.querySelector('.nm').textContent=sk.name;let ic=b.querySelector('.sic');if(!ic){ic=document.createElement('span');ic.className='sic';b.prepend(ic)}ic.textContent=SKILL_GLYPH[sk.type]||'✨';b.style.setProperty('--sc',d.color);b.classList.toggle('passive',!!sk.passive);const ky=b.querySelector('.key');if(ky)ky.textContent=sk.passive?'PASSIVE':['Q','E','R'][i]})}
 function skillCastAnim(i){const b=skBtns[i];if(!b)return;b.classList.remove('casting');void b.offsetWidth;b.classList.add('casting');setTimeout(()=>b.classList.remove('casting'),520)}
 let hudT=0,lastEv=0;
+function skUI(b,p,i,sl){let up=b.querySelector('.skup'),pip=b.querySelector('.pips');
+  if(!up){up=document.createElement('span');up.className='skup';up.textContent='+';up.addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();const h=S&&S.player;if(!h)return;if(typeof NET!=='undefined'&&NET.client){netSend({t:'skup',i});return}skillUp(h,i)});b.append(up)}
+  if(!pip){pip=document.createElement('span');pip.className='pips';b.append(pip)}
+  const show=canSkUp(p,i);if(up.hidden===show)up.hidden=!show;const mx=skMax(p,i),key=sl+'/'+mx;if(pip.dataset.k!==key){pip.dataset.k=key;pip.innerHTML='';for(let k=0;k<mx;k++){const d=document.createElement('i');if(k<sl)d.className='on';pip.append(d)}}}
 function hud(dt){
   hudT-=dt;if(!S||(S.remote&&!S.player))return;
   if(S.attract){if(hudT<=0){hudT=0.1;drawMinimap()}return}
@@ -4079,11 +4100,12 @@ function hud(dt){
   const m=Math.floor(S.t/60),sc=Math.floor(S.t%60);$('clock').textContent=String(m).padStart(2,'0')+':'+String(sc).padStart(2,'0');
   $('gold').textContent=Math.floor(p.gold);
   $('mlv').textContent='Lv '+p.lvl;$('mkda').textContent=p.kills+'/'+p.deaths+'/'+p.assists;
-  $('mxp').style.width=(p.lvl>=15?100:p.xp/needXP(p.lvl)*100)+'%';
+  $('mxp').style.width=(p.lvl>=MAXLV?100:p.xp/needXP(p.lvl)*100)+'%';
   $('mhp').textContent=Math.ceil(p.hp)+' / '+Math.round(p.maxHp);$('me').classList.toggle('low',!p.dead&&p.hp<=Math.max(250,p.maxHp*0.15));$('mmp').textContent=Math.floor(p.mana)+' / '+Math.round(p.maxMana);$('mmana').style.width=(p.mana/p.maxMana*100)+'%';$('mhero').textContent=p.def.name;
   skBtns.forEach((b,i)=>{const s=p.def.skills[i],cdEl=b.querySelector('.cd'),mc=s.passive?0:manaCost(p,i);b.classList.toggle('nomana',!s.passive&&p.mana<mc);let me=b.querySelector('.mc');if(!me){me=document.createElement('span');me.className='mc';b.append(me)}{const mt=s.passive?((p.souls||0)+'/20 · +'+((p.souls||0)*3)+' DMG'):String(mc);if(me.textContent!==mt)me.textContent=mt}
-    b.classList.toggle('oncd',p.cds[i]>0||(s.ult&&p.lvl<4));
-    if(s.ult&&p.lvl<4){cdEl.style.setProperty('--cd',1);cdEl.textContent='Lv4'}
+    const sl=(p.sl&&p.sl[i])||0;skUI(b,p,i,sl);
+    b.classList.toggle('oncd',p.cds[i]>0||sl<1);
+    if(sl<1){cdEl.style.setProperty('--cd',1);cdEl.textContent=canSkUp(p,i)?'':'Lv'+skReq(p,i,0)}
     else if(p.cds[i]>0){cdEl.style.setProperty('--cd',p.cds[i]/(s.cd*(1-p.cdr)));cdEl.textContent=Math.ceil(p.cds[i])}
     else{cdEl.style.setProperty('--cd',0);cdEl.textContent=''}});
   {const tb=$('tpbtn'),base=!p.dead&&atBase(p);tb.hidden=!base;if(!base)$('tpmenu').hidden=true;const tc=$('tpcd'),cdv=p.tpCd||0;
@@ -4124,7 +4146,7 @@ function heroAttr(d,lvl){const L=(lvl||1)-1,p=PRIM[d.role]||'str';
 const SKTYPE={proj:'Skillshot',aoe:'Area',nova:'Around self',dash:'Dash',leap:'Leap',fly:'Flight',buff:'Self buff',shield:'Shield',transform:'Transform',phase:'Phase',fissure:'Line wall',hook:'Hook',aura:'Aura',channel:'Channel',field:'Channel area',spin:'Spin',omni:'Multi-strike',bolt:'Targeted',blink:'Blink',crit:'Crit buff',toss:'Throw',cleave:'Cleave',ship:'Area',raze:'Raze',requiem:'Channel lines',passive:'Passive'};
 function skillLines(d,lvl,i,p){const s=d.skills[i],L=(lvl||1)-1,out=[];
   if(s.passive){if(d===HEROES.sitan)out.push('+3 damage per soul (max 20)','Souls: +1 per kill, +4 per hero kill','Enemies near you lose armor');return out}
-  if(s.dmg){const sc=p?(d.dmgType==='mag'?(p.mp||0)*1.1:(p.bonusAtk||0)*0.9)*BAL.scale:0;const v=Math.round((s.dmg*(0.5+0.0715*Math.min(7,L))+(s.dmgG||0)*L+sc)*BAL.skill);
+  if(s.dmg){const sc=p?(d.dmgType==='mag'?(p.mp||0)*1.1:(p.bonusAtk||0)*0.9)*BAL.scale:0;const v=Math.round((s.dmg*(p&&p.sl?skMul(p,i):(s.ult?0.6:0.5))+(s.dmgG||0)*L+sc)*BAL.skill);
     out.push((['aura','spin'].includes(s.type)?v+' dmg/sec':s.type==='channel'?v+' dmg total':s.type==='omni'?s.hits+' hits × '+v:s.type==='field'?v+' per blast':s.type==='requiem'?v+' per soul line':v+' damage')+(d.dmgType==='mag'?' (magic)':''))}
   const e=s.effect||{};if(e.stun)out.push('Stun '+e.stun+'s');if(e.slow)out.push('Slow '+Math.round(e.slow*100)+'% for '+(e.t||1)+'s');
   if(s.dur&&!['field'].includes(s.type))out.push('Lasts '+s.dur+'s');if(s.amt)out.push('Shield '+Math.round(s.amt+(s.amtG||0)*L));if(s.heal)out.push('Heals '+Math.round(s.heal*100)+'% HP');
@@ -4139,7 +4161,7 @@ function conTick(p){const id=p.defId,d=p.def;if(!d)return;
   if(CON.id!==id){CON.id=id;const src=conPortrait(id);$('cimg').src=src;$('cglyph').textContent=src?'':d.glyph;$('cglyph').style.color=d.color;$('cname').textContent=d.name;CON.items='#';CON.st=''}
   const hpT=Math.ceil(p.hp)+' / '+Math.round(p.maxHp),mpT=Math.floor(p.mana||0)+' / '+Math.round(p.maxMana||0);if($('chp').textContent!==hpT)$('chp').textContent=hpT;if($('cmp').textContent!==mpT)$('cmp').textContent=mpT;
   $('con').classList.toggle('low',!p.dead&&p.hp<=Math.max(250,p.maxHp*0.15));
-  const need=typeof needXP==='function'&&p.lvl<15?needXP(p.lvl):0;$('cxp').style.width=(need?Math.min(100,(p.xp||0)/need*100):100)+'%';
+  const need=typeof needXP==='function'&&p.lvl<MAXLV?needXP(p.lvl):0;$('cxp').style.width=(need?Math.min(100,(p.xp||0)/need*100):100)+'%';
   const lt='Level '+p.lvl+' '+d.role;if($('clvt').textContent!==lt)$('clvt').textContent=lt;
   {const A=heroAttr(d,p.lvl),key=A.str+'|'+A.agi+'|'+A.int;if(CON.attr!==key){CON.attr=key;const el=$('cattr');el.textContent='';for(const[k,lab,ic]of[['str','STR','💪'],['agi','AGI','🏹'],['int','INT','🔮']]){const sp=document.createElement('span');sp.className=A.prim===k?'pr':'';sp.textContent=ic+A[k];sp.title=lab;el.append(sp)}}}
   const it=(p.items||[]).map(x=>ITEMS[x]).filter(Boolean),sum=k=>it.reduce((a,i)=>a+(i[k]||0),0),L=p.lvl-1;
@@ -4528,6 +4550,7 @@ function mpHostMsg(c,m){
   else if(m.t==='cmd')cmdFor(h,+m.x,+m.y);
   else if(m.t==='cast')castFor(h,m.i|0,m.ax!=null?{x:+m.ax,y:+m.ay}:null);
   else if(m.t==='recall')recallFor(h);
+  else if(m.t==='skup')skillUp(h,m.i|0);
   else if(m.t==='tp')tpFor(h,m.l|0);
   else if(m.t==='fort')fortify(h.team);
   else if(m.t==='buy')buyItem(h,m.id);
@@ -4548,7 +4571,7 @@ function packUnit(u){const f=(u.dead?1:0)|(u.invuln?2:0)|(u.ranged?4:0)|(u.siege
   else if(u.kind==='tower')a.push(u.lane,TIERS.indexOf(u.tier),r2(u.firedAt??-99),r2(u.grabAt??-99),r2(u.aimA??0));
   else if(u.kind==='core')a.push(r2(u.firedAt??-99));
   else a.push(u.defId,u.lvl,u.kills,u.deaths,u.assists,r2(u.atkAt??-99),r2(u.atkDur||0.3),u.atkCount||0,r2(u.castAt??-99),u.castIdx||0,
-    u.dash?[r2(u.dash.t),r2(u.dash.dur||0.3)]:0,r1(u.recallT||0),r1(u.formT||0),r1(u.phaseT||0),Math.round(u.shield||0),r1(u.buffT||0),Math.round(u.mana||0),Math.round(u.maxMana||0),r1(u.respawnT||0),Math.round(u.xp),Math.floor(u.gold),u.items,u.cds.map(r1),u.lane,u.streak,r2(u.slowAmt||0),r1(u.stunT||0),r1(u.tpCd||0),r1(u.tpT||0),r2(u.spinT||0),u.chan?CHAN_K[u.chan.k]:0,r1(u.auraT||0),r1(u.critT||0),r2(u.tossK||0),u.souls||0,r1(u.cleaveT||0));
+    u.dash?[r2(u.dash.t),r2(u.dash.dur||0.3)]:0,r1(u.recallT||0),r1(u.formT||0),r1(u.phaseT||0),Math.round(u.shield||0),r1(u.buffT||0),Math.round(u.mana||0),Math.round(u.maxMana||0),r1(u.respawnT||0),Math.round(u.xp),Math.floor(u.gold),u.items,u.cds.map(r1),u.lane,u.streak,r2(u.slowAmt||0),r1(u.stunT||0),r1(u.tpCd||0),r1(u.tpT||0),r2(u.spinT||0),u.chan?CHAN_K[u.chan.k]:0,r1(u.auraT||0),r1(u.critT||0),r2(u.tossK||0),u.souls||0,r1(u.cleaveT||0),u.sl||[1,1,1],u.sp||0);
   return a}
 function packSnap(){const P=[];for(const p of S.proj){const tg=p.target&&p.target.id;P.push([r1(p.x),r1(p.y),r1(p.h||30),p.homing?1:0,tg??-1,p.src?p.src.id:-1,p.color||'#fff',p.size||8,p.width||20,r2(p.dx||0),r2(p.dy||0),Math.round(p.trav||0),Math.round(p.d0||0),(p.boulder?1:0)|(p.siege?2:0)|(p.arrow?4:0)|(p.tower?8:0)|(p.big?16:0)|(p.hook?32:0),r2(p.ang||0),Math.round(p.speed||800)])}
   const Z=S.zones.map(z=>[Math.round(z.x),Math.round(z.y),z.r,r2(z.delay),z.max,z.src?z.src.id:-1,z.color,z.big?1:0]);
@@ -4575,7 +4598,7 @@ function applySnap(m){const seen=new Set(),bid=S.byId;S.t=Math.max(S.t,m.T);S.ne
     else if(kind==='tower'){u.lane=a[9];u.tier=TIERS[a[10]];u.firedAt=a[11];u.grabAt=a[12];u.aimA=a[13];if(u.tier==='base')u.r=38}
     else if(kind==='core'){u.firedAt=a[9]}
     else{let i=9;u.defId=a[i++];u.def=HEROES[u.defId];u.melee=u.def.melee;u.range=u.def.range;u.lvl=a[i++];u.kills=a[i++];u.deaths=a[i++];u.assists=a[i++];u.atkAt=a[i++];u.atkDur=a[i++];u.atkCount=a[i++];u.castAt=a[i++];u.castIdx=a[i++];
-      const d=a[i++];u.dash=d?{t:d[0],dur:d[1],leap:!!(f&32)}:null;u.recallT=a[i++];u.formT=a[i++];u.phaseT=a[i++];u.shield=a[i++];u.buffT=a[i++];u.mana=a[i++];u.maxMana=a[i++];u.respawnT=a[i++];u.xp=a[i++];u.gold=a[i++];u.items=a[i++];u.cds=a[i++];u.lane=a[i++];u.streak=a[i++];u.slowAmt=a[i++];u.stunT=a[i++];u.tpCd=a[i++]||0;u.tpT=a[i++]||0;u.spinT=a[i++]||0;u.chanK=a[i++]||0;u.auraT=a[i++]||0;u.critT=a[i++]||0;u.tossK=a[i++]||0;u.souls=a[i++]||0;u.cleaveT=a[i++]||0;
+      const d=a[i++];u.dash=d?{t:d[0],dur:d[1],leap:!!(f&32)}:null;u.recallT=a[i++];u.formT=a[i++];u.phaseT=a[i++];u.shield=a[i++];u.buffT=a[i++];u.mana=a[i++];u.maxMana=a[i++];u.respawnT=a[i++];u.xp=a[i++];u.gold=a[i++];u.items=a[i++];u.cds=a[i++];u.lane=a[i++];u.streak=a[i++];u.slowAmt=a[i++];u.stunT=a[i++];u.tpCd=a[i++]||0;u.tpT=a[i++]||0;u.spinT=a[i++]||0;u.chanK=a[i++]||0;u.auraT=a[i++]||0;u.critT=a[i++]||0;u.tossK=a[i++]||0;u.souls=a[i++]||0;u.cleaveT=a[i++]||0;u.sl=a[i++]||[1,1,1];u.sp=a[i++]||0;
       u.isPlayer=u.id===NET.myHero}}
   S.units=S.units.filter(u=>{if(seen.has(u.id))return true;bid.delete(u.id);return false});S.heroes=S.heroes.filter(u=>seen.has(u.id));
   const first=!S.player;S.player=bid.get(NET.myHero)||S.player;
@@ -4751,6 +4774,7 @@ function frame(nowMs){const dt=Math.min(0.25,(nowMs-last)/1000);last=nowMs;const
 requestAnimationFrame(frame);
 })();
 </script>
+
 
 <script>if("serviceWorker" in navigator){let rl=false;navigator.serviceWorker.addEventListener("controllerchange",()=>{if(rl)return;rl=true;location.reload()});addEventListener("load",()=>navigator.serviceWorker.register("/sw.js",{updateViaCache:"none"}).then(r=>{r.update();document.addEventListener("visibilitychange",()=>{if(!document.hidden)r.update()})}).catch(()=>{}))}</script>
 </body>
