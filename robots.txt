@@ -1,5 +1,0 @@
-User-agent: *
-Allow: /
-Disallow: /models/
-Disallow: /lib/
-Sitemap: https://alamat-arena.netlify.app/sitemap.xml
