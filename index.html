@@ -1601,7 +1601,7 @@ const LOW_=(navigator.maxTouchPoints>0&&Math.min(screen.width,screen.height)<900
 const LOW=LOW_;const SHADOWS=!LOW;
 let pxr=1,pxrMax=1,fpsT=0,fpsN=0;
 function adaptQuality(dt){if(!renderer||!S)return;fpsT+=dt;fpsN++;if(fpsT<2)return;const fps=fpsN/fpsT;fpsT=0;fpsN=0;
-  const pmin=LOW?Math.min(1.15,dpr):0.75;let np=pxr;if(fps<27&&pxr>pmin)np=Math.max(pmin,pxr-0.1);else if(fps>48&&pxr<pxrMax)np=Math.min(pxrMax,pxr+0.1);
+  const pmin=LOW?Math.min(1,dpr):0.75;let np=pxr;if(fps<27&&pxr>pmin)np=Math.max(pmin,pxr-0.1);else if(fps>48&&pxr<pxrMax)np=Math.min(pxrMax,pxr+0.1);
   if(R3.comp&&R3.bloomOn){if(fps<26)R3.slowT++;else R3.slowT=0;if(R3.slowT>=3){R3.bloomOn=false}}
   if(np!==pxr){pxr=np;renderer.setPixelRatio(pxr);renderer.setSize(vw,vh,false);if(R3.comp){R3.comp.setPixelRatio(pxr);R3.comp.setSize(vw,vh)}uniK.value=vh*pxr/(2*Math.tan(20*Math.PI/180))}}
 const V=hasGL?new THREE.Vector3():null;
@@ -2524,7 +2524,7 @@ function animSitan(r,P,u,now){
   r.shadowD.scale.setScalar(1+0.06*Math.sin(now*2)+I*0.3);r.shadowRim.material.color.setRGB(1,0.15+I*0.4,0.05);r.shadowRim.material.opacity=0.25+0.15*Math.sin(now*3)+(req?0.3:0);
 }
 // ======== real 3D hero models (GLB, skeletal animation) ========
-const GLBH={kapitan:{url:'models/hero-soldier.glb',h:64,tint:0xa8bce8,acc:'kapitan'},
+const GLBH={kapitan:{url:'models/hero-soldier.glb',h:64,tint:0xa8bce8,acc:'kapitan',flip:1},
   talim:{url:'models/h-paladin.glb',anim:'models/anim-sword.glb',h:62,bright:2.3},
   amihan:{url:'models/h-erika.glb',anim:'models/anim-bow.glb',h:60,bright:1.35},
   anino:{url:'models/h-nightshade.glb',anim:'models/anim-sword.glb',h:64,bright:1.3},
@@ -2557,7 +2557,7 @@ function glbAcc(r,kind,ws){
     sw.scale.setScalar(1/ws.hand);sw.position.set(0,3/ws.hand,1/ws.hand);sw.rotation.x=Math.PI/2;r.bones.rhand.add(sw);r.tip=bl;
     r.swordGlow=glowSprite(0x4ac8ff,30,bl);r.swordGlow.material.opacity=0}}
 function buildGLBHero(id){if(!glbReady(id))return null;const cfg=GLBH[id],g=GLB[cfg.url];
-  const model=THREE.SkeletonUtils.clone(g.scene),root=new THREE.Group(),body=new THREE.Group(),inner=new THREE.Group();root.add(body);body.add(inner);inner.add(model);inner.rotation.y=Math.PI/2;
+  const model=THREE.SkeletonUtils.clone(g.scene),root=new THREE.Group(),body=new THREE.Group(),inner=new THREE.Group();root.add(body);body.add(inner);inner.add(model);inner.rotation.y=Math.PI/2+(cfg.flip?Math.PI:0);
   model.updateMatrixWorld(true);
   // true (skinned) bounds: some rigs store mesh data in other units, so sample the skinned vertices
   const sbox=o=>{const bx=new THREE.Box3(),t=new THREE.Vector3(),n=o.geometry.attributes.position.count,st=Math.max(1,Math.floor(n/300));for(let i=0;i<n;i+=st){if(o.isSkinnedMesh)o.boneTransform(i,t);else t.fromBufferAttribute(o.geometry.attributes.position,i);t.applyMatrix4(o.matrixWorld);bx.expandByPoint(t)}return bx};
@@ -3465,7 +3465,7 @@ function initGL(){
     vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
     fragmentShader:'varying vec2 vUv;uniform sampler2D mask;uniform float t;float h2(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h2(i),h2(i+vec2(1,0)),f.x),mix(h2(i+vec2(0,1)),h2(i+vec2(1,1)),f.x),f.y);}float fb(vec2 p){return vn(p)*.55+vn(p*2.1+3.)*.3+vn(p*4.3-7.)*.15;}void main(){float m=texture2D(mask,vUv).r;if(m<0.02)discard;vec2 p=vUv*140.;vec2 fl=vec2(t*0.35,-t*0.28);float a=fb(p*0.35+fl),b=fb(p*0.6-fl*1.3+a*1.5);float rip=abs(a-b);float gl=pow(smoothstep(0.0,0.05,0.05-rip),2.)*smoothstep(0.45,0.85,fb(p*0.12+t*0.05));float e=smoothstep(0.02,0.6,m);vec3 deep=vec3(0.03,0.07,0.15),shal=vec3(0.08,0.2,0.26);vec3 c=mix(shal,deep,e*0.85)*(0.8+0.45*b);c+=vec3(0.55,0.7,0.95)*gl*0.22;float band=smoothstep(0.03,0.1,m)*(1.-smoothstep(0.1,0.24,m));float fo=band*smoothstep(0.45,0.7,fb(p*0.9+vec2(t*0.6,t*0.2)));c=mix(c,vec3(0.62,0.7,0.78),fo*0.7);gl_FragColor=vec4(c,0.93*smoothstep(0.02,0.1,m)+0.05*gl);}'});
   const river=mesh(new THREE.PlaneGeometry(W,H),riverMat,scene,W/2,-6,H/2);river.rotation.x=-Math.PI/2;river.renderOrder=2;
-  buildForest();buildFountains();buildHuts();buildDecor();buildDecor2();buildBase();chunkifyInstances();initSky();loadGLBs();initBloom();if(R3.prewarm)setTimeout(R3.prewarm,0);
+  buildForest();buildFountains();buildHuts();buildDecor();buildDecor2();buildBase();chunkifyInstances();fogInit();initSky();loadGLBs();initBloom();if(R3.prewarm)setTimeout(R3.prewarm,0);
   R3.lights=[];for(let i=0;i<(LOW?2:5);i++){const l=new THREE.PointLight(0xffffff,0,400,2);scene.add(l);R3.lights.push(l)}
   // particles
   const MAXP=4000;partGeo=new THREE.BufferGeometry();
@@ -3708,8 +3708,22 @@ function angLerp(a,b,k){let d=((b-a+Math.PI)%TAU+TAU)%TAU-Math.PI;return a+d*k}
 
 // ---------- per-frame ----------
 let lastNow=0;
+// ---------- fog of war (Dota style): you only see what your team can see ----------
+const VIS={src:[],team:0,on:false,tex:null,cv:null,t:0,mesh:null};
+function visUpdate(){VIS.on=!!(S&&!S.attract&&S.player);if(!VIS.on)return;const tm=S.player.team;VIS.team=tm;const src=VIS.src;src.length=0;
+  for(const u of S.units){if(u.dead||u.team!==tm)continue;const r=u.kind==='hero'?560:u.kind==='core'?700:u.kind==='tower'?620:u.kind==='minion'?400:0;if(r)src.push(u.x,u.y,r*r,r)}}
+function canSee(u){if(!VIS.on||u.team===VIS.team||u.kind==='tower'||u.kind==='core')return true;const s=VIS.src;for(let i=0;i<s.length;i+=4){const dx=u.x-s[i],dy=u.y-s[i+1];if(dx*dx+dy*dy<s[i+2])return true}return false}
+function fogInit(){const c=document.createElement('canvas');c.width=c.height=128;VIS.cv=c;VIS.tex=new THREE.CanvasTexture(c);VIS.tex.minFilter=THREE.LinearFilter;
+  const g=new THREE.PlaneGeometry(W+1600,H+1600);g.rotateX(-Math.PI/2);const m=new THREE.MeshBasicMaterial({color:0x000000,alphaMap:VIS.tex,transparent:true,depthWrite:false,fog:false,opacity:0.7});
+  VIS.mesh=new THREE.Mesh(g,m);VIS.mesh.position.set(W/2,150,H/2);VIS.mesh.renderOrder=5;VIS.mesh.visible=false;scene.add(VIS.mesh)}
+function fogDraw(dt){if(!VIS.mesh)return;VIS.mesh.visible=VIS.on;if(!VIS.on)return;VIS.t-=dt;if(VIS.t>0)return;VIS.t=0.12;
+  const c=VIS.cv,g=c.getContext('2d'),k=128/(W+1600),o=800;g.globalCompositeOperation='source-over';g.fillStyle='#fff';g.fillRect(0,0,128,128);g.globalCompositeOperation='destination-out';
+  const s=VIS.src;for(let i=0;i<s.length;i+=4){const x=(s[i]+o)*k,y=(s[i+1]+o)*k,r=s[i+3]*k,gr=g.createRadialGradient(x,y,r*0.55,x,y,r);gr.addColorStop(0,'rgba(0,0,0,1)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.beginPath();g.arc(x,y,r,0,TAU);g.fill()}
+  // alphaMap reads the green channel: white = fogged, cleared = visible
+  g.globalCompositeOperation='destination-over';g.fillStyle='#000';g.fillRect(0,0,128,128);VIS.tex.needsUpdate=true}
 function render3d(now,dt){
   if(!S)return;
+  visUpdate();fogDraw(dt);
   if(R3.S!==S){clearEnts();R3.S=S;lastEv=0;cam.wasDead=false;cam.zoomLive=null;cam.free=false;cam.peek=false;if(!S.attract&&document.documentElement.classList.contains('touch')){setZoom(1);cam.z=1}}
   riverMat.uniforms.t.value=now;
   const T=S.t;
@@ -3759,6 +3773,7 @@ function render3d(now,dt){
       e.yaw=angLerp(e.yaw,-u.face,0.25);root.rotation.y=e.yaw;
       let lift=0;if(u.dash&&u.dash.leap){const k=1-u.dash.t/u.dash.dur;lift=Math.sin(k*Math.PI)*130}else if(u.tossK>0)lift=Math.sin(u.tossK*Math.PI)*210;
       root.position.set(u.x,hAt(u.x,u.y)+lift,u.y);
+      if(!canSee(u)){root.visible=false;e.off=true;continue}
       // off-screen units: skip drawing and animating them (big saving on phones)
       if(!onScr(u.x,u.y,root.position.y,e.kind==='creep'&&u.ctype==='boss'?420:e.kind==='minion'?90:170)){root.visible=false;e.off=true;continue}
       if(e.off){e.off=false;root.visible=true}
@@ -3964,7 +3979,7 @@ function hpBar2(x,y,w,h,u,col){
 function overlay(){
   octx.setTransform(dpr,0,0,dpr,0,0);octx.clearRect(0,0,vw,vh);if(!S)return;
   octx.textAlign='center';octx.textBaseline='middle';
-  for(const u of S.units){if(u.dead)continue;
+  for(const u of S.units){if(u.dead||!canSee(u))continue;
     if(u.kind==='hero'){const lift=u.dash&&u.dash.leap?Math.sin((1-u.dash.t/u.dash.dur)*Math.PI)*130:0;const p=scr(u.x,(u.defId==='tikbalang'?132:u.defId==='kapre'?((u.formT||0)>0?178:142):u.defId==='bungisngis'?128:u.defId==='manananggal'?124:104)+lift,u.y);if(!p.ok||p.x<-80||p.x>vw+80||p.y<-40||p.y>vh+40)continue;
       const col=relCol(u);hpBar2(p.x,p.y,70,8,u,col);if(u.maxMana){octx.fillStyle='rgba(0,0,0,.6)';octx.fillRect(p.x-35,p.y+5,70,4);octx.fillStyle='#4f8dff';octx.fillRect(p.x-35,p.y+5,70*Math.max(0,u.mana/u.maxMana),4)}
       octx.fillStyle='#0d1510';octx.fillRect(p.x-56,p.y-3,18,14);octx.fillStyle='#f2c14e';octx.font='700 12px "Saira Semi Condensed",sans-serif';octx.fillText(u.lvl,p.x-47,p.y+4);
@@ -3979,12 +3994,12 @@ function overlay(){
   if(false&&R3.flash>0){octx.fillStyle='rgba(220,235,255,'+(R3.flash*0.9).toFixed(3)+')';octx.fillRect(0,0,vw,vh)}
 }
 function drawMinimap(){
-  const s=mm.width/W;mctx.setTransform(1,0,0,1,0,0);mctx.clearRect(0,0,mm.width,mm.height);mctx.drawImage(TERR.mini,0,0,mm.width,mm.height);
-  for(const u of S.units){if(u.dead)continue;const x=u.x*s,y=u.y*s,c=u.team?'#ff5d5d':'#4aa8ff';
+  const s=mm.width/W;mctx.setTransform(1,0,0,1,0,0);mctx.clearRect(0,0,mm.width,mm.height);mctx.drawImage(TERR.mini,0,0,mm.width,mm.height);if(VIS.on&&VIS.cv){const k=128/(W+1600);mctx.globalAlpha=0.6;mctx.drawImage(VIS.cv,800*k,800*k,W*k,H*k,0,0,mm.width,mm.height);mctx.globalAlpha=1}
+  for(const u of S.units){if(u.dead||!canSee(u))continue;const x=u.x*s,y=u.y*s,c=u.team?'#ff5d5d':'#4aa8ff';
     if(u.kind==='creep'){mctx.fillStyle=u.ctype==='boss'?'#6fe3d0':'#f2c14e';const z=u.ctype==='boss'?5:2.5;mctx.beginPath();mctx.arc(x,y,z,0,TAU);mctx.fill();continue}
     if(u.kind==='minion'){mctx.fillStyle=c;mctx.fillRect(x-2,y-2,4,4)}
     else if(u.kind!=='hero'){mctx.fillStyle=c;mctx.strokeStyle='#0d1510';mctx.lineWidth=2;mctx.beginPath();mctx.rect(x-5,y-5,10,10);mctx.fill();mctx.stroke()}}
-  for(const h of S.heroes){if(h.dead)continue;mctx.fillStyle=relCol(h);mctx.strokeStyle='#0d1510';mctx.lineWidth=2;mctx.beginPath();mctx.arc(h.x*s,h.y*s,h===S.player&&!S.attract?8:6,0,TAU);mctx.fill();mctx.stroke()}
+  for(const h of S.heroes){if(h.dead||!canSee(h))continue;mctx.fillStyle=relCol(h);mctx.strokeStyle='#0d1510';mctx.lineWidth=2;mctx.beginPath();mctx.arc(h.x*s,h.y*s,h===S.player&&!S.attract?8:6,0,TAU);mctx.fill();mctx.stroke()}
   const k=worldPerPx(),rw=vw*k,rh=vh*k*1.25;mctx.strokeStyle=cam.free?'rgba(242,193,78,.9)':'rgba(255,255,255,.55)';mctx.lineWidth=1.5;mctx.strokeRect((cam.x-rw/2)*s,(cam.y-rh/2)*s,rw*s,rh*s);
 }
 
@@ -3993,7 +4008,7 @@ function resize(){
   dpr=Math.min(2,window.devicePixelRatio||1);{const de=document.documentElement,vv=window.visualViewport;vw=Math.round(Math.min(window.innerWidth,de.clientWidth||1e5,vv&&vv.scale<=1.01?vv.width:1e5));vh=Math.round(Math.min(window.innerHeight,de.clientHeight||1e5,vv&&vv.scale<=1.01?vv.height:1e5))}
   HS=clamp(Math.min(vh/420,vw/880),0.62,1.25);document.documentElement.style.setProperty('--hs',HS.toFixed(3));
   ov.width=Math.round(vw*dpr);ov.height=Math.round(vh*dpr);
-  if(renderer){pxrMax=LOW?Math.min(2,dpr):Math.min(1.5,dpr);pxr=Math.min(pxr>0?Math.max(pxr,LOW?Math.min(1.5,dpr):1):pxrMax,pxrMax);renderer.setPixelRatio(pxr);renderer.setSize(vw,vh,false);if(R3.comp){R3.comp.setPixelRatio(pxr);R3.comp.setSize(vw,vh);R3.bloom.resolution.set(Math.max(64,vw/2),Math.max(64,vh/2))}camera.aspect=vw/vh;camera.updateProjectionMatrix();uniK.value=vh*pxr/(2*Math.tan(20*Math.PI/180))}
+  if(renderer){pxrMax=LOW?Math.min(1.7,dpr):Math.min(1.5,dpr);pxr=Math.min(pxr>0?Math.max(pxr,LOW?Math.min(1.35,dpr):1):pxrMax,pxrMax);renderer.setPixelRatio(pxr);renderer.setSize(vw,vh,false);if(R3.comp){R3.comp.setPixelRatio(pxr);R3.comp.setSize(vw,vh);R3.bloom.resolution.set(Math.max(64,vw/2),Math.max(64,vh/2))}camera.aspect=vw/vh;camera.updateProjectionMatrix();uniK.value=vh*pxr/(2*Math.tan(20*Math.PI/180))}
 }
 if(hasGL){try{initGL()}catch(err){console.error(err);$('menu').querySelector('.sub').textContent='3D is not supported on this device.';$('start').disabled=true}}
 window.addEventListener('resize',resize);resize();
