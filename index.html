@@ -2573,7 +2573,7 @@ function buildGLBHero(id){if(!glbReady(id))return null;const cfg=GLBH[id],g=GLB[
   root.updateMatrixWorld(true);const v=new THREE.Vector3(),ws={};for(const k of['head','rhand']){r.bones[k].getWorldScale(v);ws[k==='rhand'?'hand':k]=v.x}
   glbAcc(r,cfg.acc,ws);r.tip=r.tip||r.bones.rhand;glbPlay(r,'idle',0);return r}
 function glbPlay(r,name,fade){const a=r.actions[name];if(!a||r.cur===a)return;a.reset().play();if(r.cur)r.cur.crossFadeTo(a,fade,false);r.cur=a}
-function animGLB(e,P,u,dt,now){const r=e.rig;
+function animGLB(e,P,u,dt,now){const r=e.rig;if(!u.dead)r.body.rotation.set(0,0,0);
   const mv=u.moveAmt||0;
   if(r.atks.length&&!u.dead){const ca=u.castAt??-99,at=Math.max(u.atkAt??-99,ca);if(at!==r.lastAtk&&now-at<0.3&&now-at>=0){r.lastAtk=at;const a=(at===ca&&r.actions.cast)||r.atks[(r.ai=(r.ai||0)+1)%r.atks.length];if(a===r.actions.cast){a.setLoop(THREE.LoopOnce,1);a.clampWhenFinished=true}a.reset();a.timeScale=a.getClip().duration/0.7;a.play();if(r.cur)r.cur.crossFadeTo(a,0.08,false);r.cur=a;r.shot=a}}
   if(r.shot&&(r.shot.time>=r.shot.getClip().duration-0.02||!r.shot.isRunning()||(mv>0.55&&r.shot.time>r.shot.getClip().duration*0.55)))r.shot=null;
@@ -3773,7 +3773,7 @@ function render3d(now,dt){
         emit(u.x+(Math.random()-.5)*16,u.y+(Math.random()-.5)*16,3,{vz:wet?90:30,vx:(Math.random()-.5)*40,vy:(Math.random()-.5)*40,grav:wet?300:0,size:wet?7:12,col:wet?[0.7,0.9,1]:[0.45,0.38,0.28],life:0.5,max:0.5,soft:wet?0:1,drag:0.92})}
       // death fall + fade
       let op=1;
-      if(u.dead){const de=T-u.diedAt;e.rig.body.rotation.z=Math.min(1,de/0.45)*1.45;op=1-clamp((de-0.6)/0.6,0,1);root.visible=de<1.3}else root.visible=true;
+      if(u.dead){const de=T-u.diedAt;if(!(e.rig.glb&&e.rig.actions.death))e.rig.body.rotation.z=Math.min(1,de/0.45)*1.45;op=1-clamp((de-0.6)/0.6,0,1);root.visible=de<1.3}else root.visible=true;
       if(u.dead&&!root.visible)continue;
       const fl=u.hitFlash>0?0.22:0;
       const ra=e.rig.alpha===undefined?1:e.rig.alpha;for(const m of e.rig.mats){m.opacity=op*ra;if(!m.userData.e0)m.userData.e0=m.emissive.clone();m.emissive.copy(m.userData.e0);if(fl)m.emissive.addScalar(fl)}
