@@ -3228,7 +3228,7 @@ function buildCore(team){
 
 // ---------- effect systems ----------
 const R3={portals:[],flashL:[],lvls:[],shake:0,ents:new Map(),dying:[],parts:[],strips:[],rocks:[],timers:[],decals:[],spins:[],S:null,flash:0};
-function emit(x,y,z,o){if(R3.parts.length>(LOW?1200:2600))return;R3.parts.push(Object.assign({x,y,z,vx:0,vy:0,vz:0,life:0.6,max:0.6,size:8,col:[1,1,1],grav:0,drag:0.94},o))}
+function emit(x,y,z,o){if(R3.parts.length>(LOW?700:2600)||(LOW&&Math.random()<0.4))return;R3.parts.push(Object.assign({x,y,z,vx:0,vy:0,vz:0,life:0.6,max:0.6,size:8,col:[1,1,1],grav:0,drag:0.94},o))}
 function hex3(h){return[(h>>16&255)/255,(h>>8&255)/255,(h&255)/255]}
 function css3(s){if(!s)return[1,1,1];if(s[0]==='#'){const n=parseInt(s.slice(1),16);return hex3(n)}return[1,1,1]}
 function strip(pts,o){R3.strips.push(Object.assign({pts,w:8,col:[1,1,1],life:0.3,max:0.3,mode:'right'},o))}
@@ -3465,7 +3465,7 @@ function initGL(){
     vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
     fragmentShader:'varying vec2 vUv;uniform sampler2D mask;uniform float t;float h2(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h2(i),h2(i+vec2(1,0)),f.x),mix(h2(i+vec2(0,1)),h2(i+vec2(1,1)),f.x),f.y);}float fb(vec2 p){return vn(p)*.55+vn(p*2.1+3.)*.3+vn(p*4.3-7.)*.15;}void main(){float m=texture2D(mask,vUv).r;if(m<0.02)discard;vec2 p=vUv*140.;vec2 fl=vec2(t*0.35,-t*0.28);float a=fb(p*0.35+fl),b=fb(p*0.6-fl*1.3+a*1.5);float rip=abs(a-b);float gl=pow(smoothstep(0.0,0.05,0.05-rip),2.)*smoothstep(0.45,0.85,fb(p*0.12+t*0.05));float e=smoothstep(0.02,0.6,m);vec3 deep=vec3(0.03,0.07,0.15),shal=vec3(0.08,0.2,0.26);vec3 c=mix(shal,deep,e*0.85)*(0.8+0.45*b);c+=vec3(0.55,0.7,0.95)*gl*0.22;float band=smoothstep(0.03,0.1,m)*(1.-smoothstep(0.1,0.24,m));float fo=band*smoothstep(0.45,0.7,fb(p*0.9+vec2(t*0.6,t*0.2)));c=mix(c,vec3(0.62,0.7,0.78),fo*0.7);gl_FragColor=vec4(c,0.93*smoothstep(0.02,0.1,m)+0.05*gl);}'});
   const river=mesh(new THREE.PlaneGeometry(W,H),riverMat,scene,W/2,-6,H/2);river.rotation.x=-Math.PI/2;river.renderOrder=2;
-  buildForest();buildFountains();buildHuts();buildDecor();buildDecor2();buildBase();chunkifyInstances();fogInit();initSky();loadGLBs();initBloom();if(R3.prewarm)setTimeout(R3.prewarm,0);
+  buildForest();buildFountains();buildHuts();buildDecor();buildDecor2();buildBase();chunkifyInstances();fogInit();minionPrewarm();initSky();loadGLBs();initBloom();if(R3.prewarm)setTimeout(R3.prewarm,0);
   R3.lights=[];for(let i=0;i<(LOW?2:5);i++){const l=new THREE.PointLight(0xffffff,0,400,2);scene.add(l);R3.lights.push(l)}
   // particles
   const MAXP=4000;partGeo=new THREE.BufferGeometry();
@@ -3694,10 +3694,18 @@ function mergeStatic(r,key){const keep=new Set(),add=v=>{if(v&&v.isObject3D)keep
       for(const a of['position','normal','uv','color']){const sz=a==='uv'?2:3;if(!parts[0].attributes[a])continue;const arr=new Float32Array(n*sz);let o=0;parts.forEach(g=>{const at=g.attributes[a];if(at)arr.set(at.array.length===g.attributes.position.count*sz?at.array:new Float32Array(g.attributes.position.count*sz),o);o+=g.attributes.position.count*sz});geo.setAttribute(a,new THREE.BufferAttribute(arr,sz))}
       geo.computeBoundingSphere();geo.userData.n=ms.length;if(ck)MERGE_C[ck]=geo}
     const mm=new THREE.Mesh(geo,ms[0].material);mm.castShadow=ms[0].castShadow;j.add(mm);ms.forEach(m=>j.remove(m))}}
+// minion rigs are recycled instead of rebuilt every wave (no build spikes / garbage on phones)
+const MPOOL={};
+function minionRig(team,ranged,siege){const k='m'+team+(ranged?1:0)+(siege?1:0),pl=MPOOL[k]||(MPOOL[k]=[]);let r=pl.pop();
+  if(!r){r=buildMinion(team,ranged,siege);mergeStatic(r,k);r.poolKey=k}
+  r.root.visible=true;r.root.position.y=0;r.body.rotation.set(0,0,0);if(r.mats)for(const m of r.mats){m.opacity=1}return r}
+function minionFree(r){if(!r.poolKey){scene.remove(r.root);return}r.root.visible=false;(MPOOL[r.poolKey]||(MPOOL[r.poolKey]=[])).push(r)}
+function minionPrewarm(){const ks=[];for(const t of[0,1])for(const[ra,si]of[[0,0],[1,0],[0,1]])ks.push([t,ra,si]);let i=0;
+  const step=()=>{if(i>=ks.length*6)return;const[t,ra,si]=ks[i%ks.length];const r=minionRig(t,ra,si);scene.add(r.root);r.root.position.set(-5000,-500,-5000);minionFree(r);i++;setTimeout(step,30)};setTimeout(step,1500)}
 function ensureEnt(u){
   let e=R3.ents.get(u.id);if(e)return e;
   if(u.kind==='hero'){const rig=(GLBH[u.defId]&&(buildGLBHero(u.defId)||loadGLB(u.defId)))||BUILD3D[u.defId]();if(!rig.glb){heroProp(rig);mergeStatic(rig,'h'+u.defId)}rig.root.scale.setScalar(1.4);e={u,rig,kind:'hero',yaw:-u.face,trail:[]}}
-  else if(u.kind==='minion'){const rig=buildMinion(u.team,u.ranged,u.siege);mergeStatic(rig,'m'+u.team+(u.ranged?1:0)+(u.siege?1:0));e={u,rig,kind:'minion',yaw:-u.face}}
+  else if(u.kind==='minion'){const rig=minionRig(u.team,u.ranged,u.siege);e={u,rig,kind:'minion',yaw:-u.face}}
   else if(u.kind==='creep'){const rig=buildCreep(u.ctype);mergeStatic(rig,'c'+u.ctype);e={u,rig,kind:'creep',yaw:-u.face}}
   else{const rig=u.kind==='core'?buildCore(u.team):buildTower(u.team);mergeStatic(rig,(u.kind==='core'?'k':'t')+u.team);rig.root.scale.setScalar((u.tier==='base'?1.2:1)*(rig.ent?1.4:1));e={u,rig,kind:u.kind}}
   if(SHADOWS)e.rig.root.traverse(o=>{if(o.isMesh&&o.material&&o.material.blending!==THREE.AdditiveBlending&&!o.material.isMeshBasicMaterial)o.castShadow=true});
@@ -3711,10 +3719,13 @@ let lastNow=0;
 // ---------- fog of war (Dota style): you only see what your team can see ----------
 const VIS={src:[],team:0,on:false,tex:null,cv:null,t:0,mesh:null};
 function visUpdate(){VIS.on=!!(S&&!S.attract&&S.player);if(!VIS.on)return;const tm=S.player.team;VIS.team=tm;const src=VIS.src;src.length=0;
-  for(const u of S.units){if(u.dead||u.team!==tm)continue;const r=u.kind==='hero'?560:u.kind==='core'?700:u.kind==='tower'?620:u.kind==='minion'?400:0;if(r)src.push(u.x,u.y,r*r,r)}}
+  // your own lanes are lit from the base out to your farthest standing tower
+  for(let l=0;l<3;l++){const p=lanePath(l,tm),L=pathLen(p);let far=0;for(const u of S.units)if(u.kind==='tower'&&!u.dead&&u.team===tm&&u.lane===l){const t=towerT(p,u.tier);if(t>far)far=t}
+    for(let d=0;d<=far*L;d+=240){const q=pointAt(p,d/L);src.push(q.x,q.y,300*300,300)}}
+  for(const u of S.units){if(u.dead||u.team!==tm)continue;const r=u.kind==='hero'?520:u.kind==='core'?620:u.kind==='tower'?400:u.kind==='minion'?300:0;if(r)src.push(u.x,u.y,r*r,r)}}
 function canSee(u){if(!VIS.on||u.team===VIS.team||u.kind==='tower'||u.kind==='core')return true;const s=VIS.src;for(let i=0;i<s.length;i+=4){const dx=u.x-s[i],dy=u.y-s[i+1];if(dx*dx+dy*dy<s[i+2])return true}return false}
 function fogInit(){const c=document.createElement('canvas');c.width=c.height=128;VIS.cv=c;VIS.tex=new THREE.CanvasTexture(c);VIS.tex.minFilter=THREE.LinearFilter;
-  const g=new THREE.PlaneGeometry(W+1600,H+1600);g.rotateX(-Math.PI/2);const m=new THREE.MeshBasicMaterial({color:0x000000,alphaMap:VIS.tex,transparent:true,depthWrite:false,fog:false,opacity:0.7});
+  const g=new THREE.PlaneGeometry(W+1600,H+1600);g.rotateX(-Math.PI/2);const m=new THREE.MeshBasicMaterial({color:0x000000,alphaMap:VIS.tex,transparent:true,depthWrite:false,fog:false,opacity:0.8});
   VIS.mesh=new THREE.Mesh(g,m);VIS.mesh.position.set(W/2,150,H/2);VIS.mesh.renderOrder=5;VIS.mesh.visible=false;scene.add(VIS.mesh)}
 function fogDraw(dt){if(!VIS.mesh)return;VIS.mesh.visible=VIS.on;if(!VIS.on)return;VIS.t-=dt;if(VIS.t>0)return;VIS.t=0.12;
   const c=VIS.cv,g=c.getContext('2d'),k=128/(W+1600),o=800;g.globalCompositeOperation='source-over';g.fillStyle='#fff';g.fillRect(0,0,128,128);g.globalCompositeOperation='destination-out';
@@ -3724,6 +3735,9 @@ function fogDraw(dt){if(!VIS.mesh)return;VIS.mesh.visible=VIS.on;if(!VIS.on)retu
 function render3d(now,dt){
   if(!S)return;
   visUpdate();fogDraw(dt);
+  if(R3.S!==S&&!S.attract&&!(typeof NET!=='undefined'&&NET.started)){const ids=[...new Set(S.heroes.map(h=>h.defId))].filter(id=>GLBH[id]);ids.forEach(loadGLB);
+    if(ids.some(id=>!glbReady(id))){R3.hold={ids,t0:performance.now()};S.paused=true;let el=document.getElementById('mload');if(!el){el=document.createElement('div');el.id='mload';el.style.cssText='position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:rgba(8,14,10,.92);color:#f2c14e;font:600 16px system-ui;letter-spacing:1px';el.innerHTML='<div style="width:34px;height:34px;border:4px solid #3a5a43;border-top-color:#f2c14e;border-radius:50%;animation:mlspin .8s linear infinite"></div><div>Loading heroes…</div><style>@keyframes mlspin{to{transform:rotate(360deg)}}</style>';document.body.appendChild(el)}el.hidden=false}}
+  if(R3.hold&&S===R3.S){const h=R3.hold;if(h.ids.every(glbReady)||performance.now()-h.t0>12000){R3.hold=null;S.paused=false;const el=document.getElementById('mload');if(el)el.hidden=true;try{renderer.compile(scene,camera)}catch(e){}}}
   if(R3.S!==S){clearEnts();R3.S=S;lastEv=0;cam.wasDead=false;cam.zoomLive=null;cam.free=false;cam.peek=false;if(!S.attract&&document.documentElement.classList.contains('touch')){setZoom(1);cam.z=1}}
   riverMat.uniforms.t.value=now;
   const T=S.t;
@@ -3800,8 +3814,8 @@ function render3d(now,dt){
         if(!rg.core&&Math.random()<0.25)emit(u.x+(Math.random()-.5)*20,u.y+(Math.random()-.5)*20,120,{vz:30,size:5,col:u.team?[0.75,0.5,1]:[0.6,0.85,1],life:0.8,max:0.8,drag:1})}
     }
   }
-  for(const[id,e]of R3.ents)if(!seen.has(id)){R3.ents.delete(id);if(e.kind==='minion'||e.kind==='creep')R3.dying.push({rig:e.rig,t:0});else scene.remove(e.rig.root)}
-  for(const d of R3.dying){d.t+=dt;d.rig.body.rotation.z=Math.min(1,d.t/0.35)*1.4;d.rig.root.position.y=-Math.max(0,d.t-0.5)*40;if(d.t>1.1){scene.remove(d.rig.root);d.dead=true}}
+  for(const[id,e]of R3.ents)if(!seen.has(id)){R3.ents.delete(id);if(e.kind==='minion'||e.kind==='creep')R3.dying.push({rig:e.rig,t:0,mp:e.kind==='minion'});else scene.remove(e.rig.root)}
+  for(const d of R3.dying){d.t+=dt;d.rig.body.rotation.z=Math.min(1,d.t/0.35)*1.4;d.rig.root.position.y=-Math.max(0,d.t-0.5)*40;if(d.t>1.1){if(d.mp)minionFree(d.rig);else scene.remove(d.rig.root);d.dead=true}}
   R3.dying=R3.dying.filter(d=>!d.dead);
   scene.updateMatrixWorld();
   // pooled objects
