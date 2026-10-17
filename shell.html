@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="theme-color" content="#0d1510">
+<link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" href="/icons/icon-192.png?v=2">
+<title>Alamat Arena</title>
+<style>
+html,body{margin:0;height:100%;background:#0b130f;overflow:hidden;overscroll-behavior:none;touch-action:none}
+#f{position:fixed;top:0;left:0;border:0;display:block;background:#0b130f;transform-origin:0 0}
+#w{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:#f2c14e;font:600 15px system-ui;letter-spacing:1px}
+</style></head>
+<body>
+<div id="w">ALAMAT ARENA</div>
+<!-- the game always runs in landscape: when the phone is held upright the frame is turned sideways -->
+<iframe id="f" src="/?inner=1" allow="fullscreen; autoplay; gamepad; clipboard-write" allowfullscreen></iframe>
+<script>
+(function(){var f=document.getElementById('f');
+function fit(){var W=window.innerWidth,H=window.innerHeight;
+  if(H>W){f.style.width=H+'px';f.style.height=W+'px';f.style.transform='translateX('+W+'px) rotate(90deg)'}
+  else{f.style.width=W+'px';f.style.height=H+'px';f.style.transform='none'}}
+fit();addEventListener('resize',fit);addEventListener('orientationchange',function(){setTimeout(fit,60);setTimeout(fit,400)});
+if(window.visualViewport)visualViewport.addEventListener('resize',fit);
+addEventListener('message',function(e){if(e.data==='aa-ready'){var w=document.getElementById('w');w&&w.remove()}});
+document.addEventListener('gesturestart',function(e){e.preventDefault()});
+if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js',{updateViaCache:'none'}).catch(function(){});
+})();
+</script>
+</body></html>
